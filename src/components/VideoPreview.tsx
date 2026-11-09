@@ -1,13 +1,10 @@
 import { useEffect, useRef, type CSSProperties } from 'react';
 import { categoryById } from '../data/categories';
 import type { Product } from '../types';
-import { Play } from './Icons';
 
 interface Props {
   product: Product;
   playing: boolean;
-  /** Show the big centered play affordance when idle. */
-  showPlayIcon?: boolean;
   large?: boolean;
 }
 
@@ -15,7 +12,7 @@ interface Props {
  * Renders the product's preview video, or an animated placeholder until real videos exist.
  * Playback is driven by `playing` (hover on cards, always-on on the product page).
  */
-export function VideoPreview({ product, playing, showPlayIcon = true, large }: Props) {
+export function VideoPreview({ product, playing, large }: Props) {
   const { video, poster, hueA, hueB, variant } = product.preview;
   const ref = useRef<HTMLVideoElement>(null);
 
@@ -50,11 +47,6 @@ export function VideoPreview({ product, playing, showPlayIcon = true, large }: P
             <span>Preview placeholder</span>
           </div>
           <div className="ph__grain" />
-        </div>
-      )}
-      {showPlayIcon && (
-        <div className="preview__play" aria-hidden>
-          <Play width={22} height={22} />
         </div>
       )}
       <div className="preview__progress" aria-hidden>

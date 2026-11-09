@@ -40,7 +40,7 @@ export function CartDrawer() {
               {cart.items.map((p) => (
                 <li key={p.id} className="drawer__item">
                   <Link to={`/item/${p.slug}`} onClick={cart.close} className="drawer__thumb">
-                    <VideoPreview product={p} playing={false} showPlayIcon={false} />
+                    <VideoPreview product={p} playing={false} />
                   </Link>
                   <div className="drawer__info">
                     <Link to={`/item/${p.slug}`} onClick={cart.close}>

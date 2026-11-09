@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Bag, Check, Layers, Star } from '../components/Icons';
-import { ProductCard, TierBadge } from '../components/ProductCard';
+import { Bag, Check, Layers } from '../components/Icons';
+import { Badges, ProductCard } from '../components/ProductCard';
+import { Rating } from '../components/Rating';
 import { VideoPreview } from '../components/VideoPreview';
 import { categoryById } from '../data/categories';
 import { formatPrice, getProduct, related } from '../data/products';
@@ -40,7 +41,7 @@ export function ProductPage() {
       <div className="product">
         <div className="product__main">
           <div className={`product__media ${product.tier === 'pack' ? 'card--pack' : ''}`}>
-            <VideoPreview product={product} playing large showPlayIcon={false} />
+            <VideoPreview product={product} playing large />
           </div>
 
           <div className="product__about">
@@ -76,17 +77,14 @@ export function ProductPage() {
 
         <aside className="buybox glass-panel">
           <div className="buybox__badges">
-            <span className="badge badge--app">{cat.short}</span>
-            <TierBadge product={product} />
+            <Badges product={product} />
           </div>
           <h1>{product.title}</h1>
-          <p className="muted">
+          <p className="muted">{product.summary}</p>
+          <Rating rating={product.rating} size={15} label="long" />
+          <p className="muted small">
             by <b>{product.author}</b>
           </p>
-          <div className="rating">
-            <Star width={15} height={15} /> {product.rating.toFixed(1)}
-            <span className="muted">· {product.sales.toLocaleString('en-US')} sales</span>
-          </div>
 
           <div className="price price--lg">
             {product.oldPrice && <s>{formatPrice(product.oldPrice)}</s>}

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CATEGORIES, isCategoryId } from '../data/categories';
 import { ALL_TAGS, queryProducts, type SortKey, type TierFilter } from '../data/products';
-import type { Tier } from '../types';
 import { Close } from './Icons';
 import { ProductCard } from './ProductCard';
 
@@ -23,14 +22,14 @@ const SORTS: { id: SortKey; label: string }[] = [
 ];
 
 interface Props {
-  /** Tier hidden while the type filter is "all" (home page shows featured separately above). */
-  exclude?: Tier;
+  /** Hidden while no filter is active (e.g. projects already shown in the home carousel). */
+  excludeIds?: string[];
   /** Element id to scroll to when filters change. */
   anchorId?: string;
 }
 
 /** Filterable product grid. All filter state lives in the URL so views are shareable. */
-export function Catalog({ exclude, anchorId = 'catalog' }: Props) {
+export function Catalog({ excludeIds, anchorId = 'catalog' }: Props) {
   const [params, setParams] = useSearchParams();
   const [limit, setLimit] = useState(PAGE);
 
@@ -44,10 +43,11 @@ export function Catalog({ exclude, anchorId = 'catalog' }: Props) {
   const sort: SortKey = SORTS.some((s) => s.id === sortParam) ? sortParam! : 'popular';
 
   const tagsKey = tags.join('|');
+  const hasFilters = !!(category || tier !== 'all' || tags.length || q);
   const results = useMemo(() => {
     const list = queryProducts({ category, tier, tags: tagsKey ? tagsKey.split('|') : [], q, sort });
-    return tier === 'all' && exclude ? list.filter((p) => p.tier !== exclude) : list;
-  }, [category, tier, tagsKey, q, sort, exclude]);
+    return !hasFilters && excludeIds ? list.filter((p) => !excludeIds.includes(p.id)) : list;
+  }, [category, tier, tagsKey, q, sort, hasFilters, excludeIds]);
 
   useEffect(() => setLimit(PAGE), [params]);
 
@@ -65,8 +65,6 @@ export function Catalog({ exclude, anchorId = 'catalog' }: Props) {
       p.delete('tag');
       (cur.includes(t) ? cur.filter((x) => x !== t) : [...cur, t]).forEach((x) => p.append('tag', x));
     });
-
-  const hasFilters = !!(category || tier !== 'all' || tags.length || q);
 
   return (
     <section className="catalog" id={anchorId}>

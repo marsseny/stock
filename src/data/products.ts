@@ -1,19 +1,11 @@
 import type { CategoryId, Product, Tier } from '../types';
+import { mulberry32 } from './random';
+import { computeRating } from './ratings';
 
 /**
  * Mock catalog. Deterministic so URLs/slugs are stable between reloads.
  * Swap `PRODUCTS` for API data later — the rest of the app only uses the helpers below.
  */
-
-function mulberry32(seed: number) {
-  return () => {
-    seed |= 0;
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
 
 const rand = mulberry32(20261109);
 const pick = <T,>(arr: readonly T[]) => arr[Math.floor(rand() * arr.length)];
@@ -78,6 +70,37 @@ const COMPAT: Record<CategoryId, string[]> = {
   'sound-fx': ['WAV 48kHz / 24-bit'],
 };
 
+type Summary = (adj: string, noun: string) => string;
+
+const SUMMARIES: Record<CategoryId, Summary[]> = {
+  'after-effects': [
+    (a, n) => `${a} ${n} with smooth motion and one-click color controls.`,
+    (_, n) => `Punchy ${n} for brands, events and social — render-ready in minutes.`,
+    (a, n) => `Customizable ${a.toLowerCase()} ${n} with drop zones for your media and text.`,
+  ],
+  'premiere-pro': [
+    (_, n) => `Drag-and-drop ${n} as MOGRTs — edit right in the Essential Graphics panel.`,
+    (a, n) => `${a} ${n} made for YouTube, Reels and TikTok edits.`,
+    (a, n) => `Fast ${a.toLowerCase()} ${n} that adapt to any resolution and duration.`,
+  ],
+  plugins: [
+    (_, n) => `A lightweight ${n} panel that turns ten clicks into one.`,
+    (_, n) => `${n[0].toUpperCase() + n.slice(1)} that automates repetitive keyframing and saves hours.`,
+  ],
+  'davinci-resolve': [
+    (a, n) => `${a} ${n} for the Edit page, fully adjustable in the Inspector.`,
+    (_, n) => `Drag-and-drop ${n} for DaVinci Resolve with smooth, eased motion.`,
+  ],
+  presets: [
+    (a, n) => `${a} ${n} that give footage a consistent, filmic look in one click.`,
+    (_, n) => `Hand-tuned ${n} for log and Rec.709 footage.`,
+  ],
+  'sound-fx': [
+    (a, n) => `${a} ${n} designed to sync with motion graphics and cuts.`,
+    (_, n) => `Clean, punchy ${n} — mixed, mastered and ready for your timeline.`,
+  ],
+};
+
 const CATEGORY_WEIGHTS: CategoryId[] = [
   'after-effects', 'after-effects', 'after-effects', 'after-effects',
   'premiere-pro', 'premiere-pro', 'premiere-pro',
@@ -112,8 +135,12 @@ function build(): Product[] {
     const tier = tierFor(i);
 
     let title = '';
+    let adj = '';
+    let noun = '';
     do {
-      title = `${pick(ADJECTIVES)} ${pick(NOUNS[category])}`;
+      adj = pick(ADJECTIVES);
+      noun = pick(NOUNS[category]);
+      title = `${adj} ${noun}`;
       if (tier === 'pack') title += pick([' Pack', ' Bundle', ' Mega Pack', ' Collection']);
     } while (used.has(title));
     used.add(title);
@@ -121,15 +148,22 @@ function build(): Product[] {
     const price = priceFor(tier, category);
     const onSale = rand() < 0.18;
     const itemsCount = tier === 'pack' ? between(4, 40) * 10 : undefined;
+    const summary =
+      tier === 'pack'
+        ? `${itemsCount} ready-to-use ${noun.toLowerCase()} in one ${adj.toLowerCase()} style — a whole toolkit in a single download.`
+        : pick(SUMMARIES[category])(adj, noun.toLowerCase());
+    const createdAt = new Date(now - between(1, 420) * 86_400_000).toISOString();
+    const id = `p${String(i + 1).padStart(3, '0')}`;
     const isAudio = category === 'sound-fx';
     const isTool = category === 'plugins' || category === 'presets';
     const tags = sample(TAGS[category], between(3, 5));
     if (tier === 'pack' && !tags.includes('bundle')) tags.push('bundle');
 
     products.push({
-      id: `p${String(i + 1).padStart(3, '0')}`,
+      id,
       slug: slugify(title),
       title,
+      summary,
       author: pick(AUTHORS),
       category,
       tier,
@@ -146,9 +180,8 @@ function build(): Product[] {
       compatibility: pick(COMPAT[category]),
       fileSize: tier === 'pack' ? `${between(2, 18)}.${between(0, 9)} GB` : `${between(40, 900)} MB`,
       pluginsRequired: category === 'after-effects' ? rand() < 0.2 : false,
-      createdAt: new Date(now - between(1, 420) * 86_400_000).toISOString(),
-      sales: tier === 'featured' ? between(800, 4000) : between(20, 1500),
-      rating: Math.round((4 + rand()) * 10) / 10,
+      createdAt,
+      rating: computeRating(id, createdAt, tier === 'featured' ? 1.6 : tier === 'pack' ? 1.2 : 0.8 + rand() * 0.4),
       description:
         tier === 'pack'
           ? `A complete ${title.toLowerCase()} with ${itemsCount} ready-to-use elements. Everything is organized, color-controllable and easy to customize — drop it into your timeline and render.`
@@ -212,7 +245,7 @@ export function queryProducts({ category, tier = 'all', tags = [], q = '', sort 
         p.tags.some((t) => t.includes(needle))),
   );
   const sorters: Record<SortKey, (a: Product, b: Product) => number> = {
-    popular: (a, b) => b.sales - a.sales,
+    popular: (a, b) => b.rating.count - a.rating.count,
     newest: (a, b) => b.createdAt.localeCompare(a.createdAt),
     'price-asc': (a, b) => a.price - b.price,
     'price-desc': (a, b) => b.price - a.price,

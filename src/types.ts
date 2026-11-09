@@ -15,6 +15,11 @@ export interface Category {
   description: string;
 }
 
+export interface RatingStats {
+  average: number;
+  count: number;
+}
+
 export interface PreviewMedia {
   /** Real preview video URL. When absent, an animated placeholder is shown. */
   video?: string;
@@ -45,8 +50,9 @@ export interface Product {
   fileSize: string;
   pluginsRequired: boolean;
   createdAt: string;
-  sales: number;
-  rating: number;
+  rating: RatingStats;
+  /** One-line pitch shown on cards. */
+  summary: string;
   description: string;
   preview: PreviewMedia;
 }
