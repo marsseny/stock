@@ -1,5 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
-import { WhopCheckoutEmbed } from '@whop/checkout/react';
+import { loadWhop } from '@whop/elements';
+import { Checkout, CheckoutElement, WhopElements } from '@whop/elements-react';
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
@@ -34,6 +35,10 @@ const MAX_ATTEMPTS = 6;
 const RETRY_DELAY_MS = 1500;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const LAST_EMAIL_KEY = 'fh_checkout_email';
+
+/** The Whop Elements SDK is loaded once per page, on the first checkout that reaches the payment step. */
+let whopLoad: ReturnType<typeof loadWhop> | null = null;
+const getWhop = () => (whopLoad ??= loadWhop());
 
 const wait = (ms: number) => new Promise((r) => window.setTimeout(r, ms));
 
@@ -234,6 +239,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   }, [product.slug, email]);
 
   const onComplete = (planId: string, receiptId: string | undefined) => {
+    if (receiptRef.current) return; // Whop may re-fire completion for a restored session
     if (!receiptId) {
       setError(`Your payment went through, but the checkout did not return a receipt. Sign in to My Purchases with ${email} to get your file.`);
       setStage('error');
@@ -368,22 +374,35 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
               </button>
             </div>
             <div className="whop-frame">
-              <WhopCheckoutEmbed
-                key={`${product.whopPlanId}-${email}-${promo?.code ?? ''}`}
-                planId={product.whopPlanId}
-                theme="dark"
-                skipRedirect
-                promoCode={promo?.code}
-                prefill={{ email }}
-                disableEmail
-                themeOptions={{ accentColor: '#e3f42a', backgroundColor: '#0d171d', borderRadius: 14, buttonText: 'Pay & download' }}
-                onComplete={onComplete}
-                fallback={
-                  <div className="whop-frame__loading">
-                    <span className="spinner" /> Loading secure checkout…
-                  </div>
-                }
-              />
+              <WhopElements
+                elements={getWhop()}
+                appearance={{ theme: { appearance: 'dark', accentColor: 'lime', grayColor: 'slate' } }}
+                onLoadError={(err) => {
+                  whopLoad = null; // allow a fresh load on the next attempt
+                  fail(err, 'The secure checkout could not be loaded.');
+                }}
+              >
+                <Checkout
+                  key={`${product.whopPlanId}-${email}-${promo?.code ?? ''}`}
+                  plan={product.whopPlanId}
+                  promoCode={promo?.code}
+                  metadata={{ product_slug: product.slug, buyer_email: email }}
+                  onComplete={(c) => {
+                    if (c.result === 'payment') onComplete(product.whopPlanId, c.paymentId);
+                  }}
+                  fallback={
+                    <div className="whop-frame__loading">
+                      <span className="spinner" /> Loading secure checkout…
+                    </div>
+                  }
+                >
+                  <CheckoutElement
+                    buyerEmail={email}
+                    lockBuyerEmail
+                    onError={(e) => fail(new Error(e.message), 'The secure checkout could not be loaded.')}
+                  />
+                </Checkout>
+              </WhopElements>
             </div>
             <small className="muted center modal__fine">Lifetime license · commercial use · instant download</small>
           </div>

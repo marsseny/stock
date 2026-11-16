@@ -12,7 +12,8 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
-    "@whop/checkout": "^0.7.0",
+    "@whop/elements": "^1.10.0",
+    "@whop/elements-react": "^1.10.0",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5"
