@@ -13,7 +13,7 @@ interface Props {
 const LABELS = ['', 'Poor', 'Fair', 'Good', 'Great', 'Excellent'];
 
 /**
- * Star rating for a purchased project (My Purchases). Clicking a star opens a small comment box;
+ * Star rating for a purchased project (My Account). Clicking a star opens a small comment box;
  * "Post review" stores it via POST /api/reviews and it appears on the product page.
  */
 export function RateProject({ productSlug, review, onSaved }: Props) {

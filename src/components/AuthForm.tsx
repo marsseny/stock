@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 
 const RESEND_COOLDOWN = 60;
@@ -11,10 +11,6 @@ interface Props {
   eyebrow?: string;
   title?: ReactNode;
   intro?: ReactNode;
-  /** `modal` — compact layout inside the checkout modal. */
-  variant?: 'page' | 'modal';
-  /** `slug|PROMO` of the checkout to re-open after "Continue with Google" returns. */
-  pendingCheckout?: string;
 }
 
 export function GoogleLogo() {
@@ -29,23 +25,20 @@ export function GoogleLogo() {
 }
 
 /**
- * Passwordless sign-in: "Continue with Google" or e-mail → 6-digit code (Supabase OTP).
- * The first sign-in creates the buyer account. Success is picked up by `onAuthStateChange` in the parent.
+ * Passwordless sign-in by magic link: the buyer types an e-mail, Supabase sends a sign-in link that
+ * returns to /account (`detectSessionInUrl` picks the session up; the parent listens to `onAuthStateChange`).
+ * Supabase → Auth → URL Configuration must allow `<site>/account` as a redirect URL.
  */
 export function AuthForm({
-  eyebrow = 'My Purchases',
-  title = 'Sign in to your downloads',
-  intro = 'Enter the e-mail you used at checkout. We’ll send you a 6-digit code — no password needed.',
-  variant = 'page',
-  pendingCheckout,
+  eyebrow = 'My Account',
+  title = 'Sign in to your account',
+  intro = 'Enter the e-mail you used at checkout — we’ll send you a sign-in link. No password needed.',
 }: Props) {
-  const [step, setStep] = useState<'email' | 'code'>('email');
   const [email, setEmail] = useState('');
-  const [code, setCode] = useState('');
+  const [sentTo, setSentTo] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [cooldown, setCooldown] = useState(0);
-  const codeRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (cooldown <= 0) return;
@@ -53,82 +46,37 @@ export function AuthForm({
     return () => window.clearTimeout(t);
   }, [cooldown]);
 
-  useEffect(() => {
-    if (step === 'code') codeRef.current?.focus();
-  }, [step]);
-
-  const google = async () => {
-    if (!supabase) return;
-    setBusy(true);
-    setError('');
-    try {
-      if (pendingCheckout) sessionStorage.setItem(PENDING_CHECKOUT_KEY, pendingCheckout);
-    } catch {
-      /* storage unavailable — the buyer just clicks Buy now again after returning */
-    }
-    const { error: err } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.href.split('#')[0] },
-    });
-    if (err) {
-      setBusy(false);
-      setError(err.message);
-    }
-    // On success the browser navigates to Google.
-  };
-
-  const sendCode = async (e?: FormEvent) => {
+  const send = async (e?: FormEvent) => {
     e?.preventDefault();
     if (!supabase) return;
-    const clean = email.trim().toLowerCase();
+    const clean = (sentTo || email).trim().toLowerCase();
     if (!EMAIL_RE.test(clean)) {
       setError('Enter a valid e-mail address.');
       return;
     }
     setBusy(true);
     setError('');
-    const { error: err } = await supabase.auth.signInWithOtp({ email: clean, options: { shouldCreateUser: true } });
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email: clean,
+      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/account` },
+    });
     setBusy(false);
     if (err) {
       setError(err.message);
       return;
     }
-    setEmail(clean);
-    setCode('');
-    setStep('code');
+    setSentTo(clean);
     setCooldown(RESEND_COOLDOWN);
   };
 
-  const verify = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!supabase) return;
-    if (!/^\d{6}$/.test(code)) {
-      setError('Enter the 6-digit code from the e-mail.');
-      return;
-    }
-    setBusy(true);
-    setError('');
-    const { error: err } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
-    setBusy(false);
-    if (err) setError(err.message.includes('expired') || err.message.includes('invalid') ? 'This code is invalid or has expired.' : err.message);
-  };
-
-  const Heading = variant === 'modal' ? 'h3' : 'h1';
-
   return (
-    <div className={variant === 'modal' ? 'auth auth--modal' : 'auth glass-panel'}>
-      {variant === 'page' && <span className="modal__eyebrow">{eyebrow}</span>}
-      {step === 'email' ? (
+    <div className="auth glass-panel">
+      <span className="modal__eyebrow">{eyebrow}</span>
+      {!sentTo ? (
         <>
-          <Heading>{title}</Heading>
+          <h1>{title}</h1>
           <p className="muted">{intro}</p>
-          <button type="button" className="btn btn--google btn--lg btn--block" onClick={google} disabled={busy}>
-            <GoogleLogo /> Continue with Google
-          </button>
-          <div className="auth__or" aria-hidden>
-            <span>or use e-mail</span>
-          </div>
-          <form className="auth__form" onSubmit={sendCode}>
+          <form className="auth__form" onSubmit={send} noValidate>
             <label className="field">
               <span>E-mail</span>
               <input
@@ -141,56 +89,32 @@ export function AuthForm({
                 placeholder="you@studio.com"
                 autoComplete="email"
                 required
-                autoFocus={variant === 'page'}
+                autoFocus
               />
             </label>
             {error && <p className="form-error" role="alert">{error}</p>}
             <button type="submit" className="btn btn--accent btn--lg btn--block" disabled={busy}>
               {busy ? <span className="spinner" /> : null}
-              {busy ? 'Sending…' : 'Send code'}
+              {busy ? 'Sending…' : 'Send sign-in link'}
             </button>
           </form>
         </>
       ) : (
         <>
-          <Heading>Check your inbox</Heading>
+          <h1>Check your inbox</h1>
           <p className="muted">
-            We sent a 6-digit code to <strong>{email}</strong>.
+            We sent a sign-in link to <strong>{sentTo}</strong>. Open it on this device to see your files.
           </p>
-          <form className="auth__form" onSubmit={verify}>
-            <label className="field">
-              <span>6-digit code</span>
-              <input
-                ref={codeRef}
-                className="otp-input"
-                inputMode="numeric"
-                autoComplete="one-time-code"
-                pattern="\d{6}"
-                maxLength={6}
-                value={code}
-                onChange={(e) => {
-                  setCode(e.target.value.replace(/\D/g, '').slice(0, 6));
-                  setError('');
-                }}
-                placeholder="••••••"
-                required
-              />
-            </label>
-            {error && <p className="form-error" role="alert">{error}</p>}
-            <button type="submit" className="btn btn--accent btn--lg btn--block" disabled={busy || code.length !== 6}>
-              {busy ? <span className="spinner" /> : null}
-              {busy ? 'Verifying…' : 'Verify & continue'}
-            </button>
-          </form>
+          {error && <p className="form-error" role="alert">{error}</p>}
           <div className="auth__links">
-            <button type="button" className="link-btn" onClick={() => void sendCode()} disabled={busy || cooldown > 0}>
-              {cooldown > 0 ? `Resend code in ${cooldown}s` : 'Resend code'}
+            <button type="button" className="link-btn" onClick={() => void send()} disabled={busy || cooldown > 0}>
+              {cooldown > 0 ? `Resend link in ${cooldown}s` : 'Resend link'}
             </button>
             <button
               type="button"
               className="link-btn"
               onClick={() => {
-                setStep('email');
+                setSentTo('');
                 setError('');
               }}
             >

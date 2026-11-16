@@ -132,10 +132,10 @@ export function Header() {
           <Link
             to="/account"
             className={`btn btn--glass btn--sm purchases-btn ${active === 'account' ? 'is-done' : ''}`}
-            aria-label="My Purchases"
+            aria-label="My Account"
           >
             <User width={16} height={16} />
-            <span className="hide-sm">My Purchases</span>
+            <span className="hide-sm">My Account</span>
           </Link>
           <button className="btn btn--glass btn--icon show-sm" onClick={() => setMobileOpen((v) => !v)} aria-label="Menu">
             {mobileOpen ? <Close /> : <Menu />}
@@ -150,7 +150,7 @@ export function Header() {
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search templates" aria-label="Search" />
           </form>
           <div className="menu__heading">Shop</div>
-          {[...CATEGORIES.map((c) => ({ label: c.label, to: `/browse?cat=${c.id}` })), ...TYPES, { label: 'About', to: '/about' }, { label: 'My Purchases', to: '/account' }].map(
+          {[...CATEGORIES.map((c) => ({ label: c.label, to: `/browse?cat=${c.id}` })), ...TYPES, { label: 'About', to: '/about' }, { label: 'My Account', to: '/account' }].map(
             (l) => (
               <Link key={l.to} to={l.to} className="menu__item">
                 <span>{l.label}</span>

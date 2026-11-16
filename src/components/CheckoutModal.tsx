@@ -241,7 +241,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   const onComplete = (planId: string, receiptId: string | undefined) => {
     if (receiptRef.current) return; // Whop may re-fire completion for a restored session
     if (!receiptId) {
-      setError(`Your payment went through, but the checkout did not return a receipt. Sign in to My Purchases with ${email} to get your file.`);
+      setError(`Your payment went through, but the checkout did not return a receipt. Sign in to My Account with ${email} to get your file.`);
       setStage('error');
       return;
     }
@@ -360,7 +360,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
               )}
             </button>
             <small className="muted center modal__fine">
-              No account needed. Sign in to My Purchases later with this e-mail to re-download your files.
+              No account needed. Sign in to My Account later with this e-mail to re-download your files.
             </small>
           </form>
         )}
@@ -387,6 +387,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
                   plan={product.whopPlanId}
                   promoCode={promo?.code}
                   metadata={{ product_slug: product.slug, buyer_email: email }}
+                  returnUrl={`${window.location.origin}/account?product=${encodeURIComponent(product.slug)}`}
                   onComplete={(c) => {
                     if (c.result === 'payment') onComplete(product.whopPlanId, c.paymentId);
                   }}
@@ -436,7 +437,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
                 </button>
               )}
               <Link to="/account" className="btn btn--glass btn--lg" onClick={onClose}>
-                Open My Purchases
+                Open My Account
               </Link>
             </div>
             {receiptRef.current && <small className="muted">Receipt: {receiptRef.current.receiptId}</small>}
@@ -488,9 +489,9 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
             <p className="delivery__foot muted">
               Linked to <strong>{result.email}</strong>. Sign in to{' '}
               <Link to="/account" onClick={onClose}>
-                <strong>My Purchases</strong>
+                <strong>My Account</strong>
               </Link>{' '}
-              with this e-mail (code or Google) to re-download your files anytime.
+              with this e-mail (sign-in link) to re-download your files anytime.
             </p>
           </div>
         )}

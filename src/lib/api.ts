@@ -78,6 +78,14 @@ export const claimFree = (body: { productSlug: string; promoCode: string; email:
     body: JSON.stringify(body),
   });
 
+/* ------------------------------------ Contact ------------------------------------ */
+
+export const CONTACT_MAX_LENGTH = 2000;
+
+/** Sends a question to the support inbox; the signed-in e-mail (token) wins over `email`. */
+export const sendContact = (body: { message: string; email?: string; website?: string }, accessToken?: string) =>
+  request<{ ok: true }>(`${API()}/contact`, { method: 'POST', headers: auth(accessToken), body: JSON.stringify(body) });
+
 /* ------------------------------------ Reviews ------------------------------------ */
 
 export interface ApiReview {

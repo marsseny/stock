@@ -66,7 +66,7 @@ async function resolveBuyerEmail(req: Request, receiptId: string, planId: string
     throw new HttpError(400, 'plan_mismatch', 'The receipt belongs to a different product.');
   }
   // The e-mail typed into our checkout (also locked in the Whop form) wins over Whop's account e-mail,
-  // so the file always lands where the buyer expects to find it in My Purchases.
+  // so the file always lands where the buyer expects to find it in My Account.
   const email = (fallbackEmail && isEmail(fallbackEmail) ? fallbackEmail : undefined) ?? payment.email;
   if (!email) throw new HttpError(422, 'email_unavailable', 'Whop did not return the buyer e-mail for this receipt.');
   return normalizeEmail(email);

@@ -5,7 +5,7 @@
  *
  * Delivers a product without Whop when the buyer applies the 100%-off code (TEST100 by default).
  * No account is required: the e-mail typed into the checkout is stored in `purchases`, so the file
- * shows up later in My Purchases after signing in with that e-mail.
+ * shows up later in My Account after signing in with that e-mail.
  * The code is checked on the server; set FREE_PROMO_CODE to rename it or FREE_PROMO_DISABLED=true to turn it off.
  * Re-claiming the same product with the same e-mail returns the existing purchase and license key.
  */
