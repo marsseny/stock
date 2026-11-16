@@ -1,0 +1,7 @@
+# Cloudflare Pages project (static SPA from dist/ + /api/* via dist/_worker.js built from cf/worker.ts).
+# Secrets (SUPABASE_SERVICE_ROLE_KEY, WHOP_API_KEY, WHOP_WEBHOOK_SECRET, R2_*) are set with
+# `wrangler pages secret put <NAME>` or in the dashboard — never here.
+name = "framehaus"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]

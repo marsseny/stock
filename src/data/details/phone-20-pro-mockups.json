@@ -1,0 +1,51 @@
+{
+  "summary": "Phone 20 Pro Mockups is a premium pack of 8 pre-rendered luxury 3D phone scenes for After Effects. Built with a clean modular structure and quick edit controllers, it lets you drop in your screen recordings or app UI, adjust lighting and colors, and render in 4K — no third-party plugins required. Free font links are included; music and demo screens are not included.",
+  "application": "after-effects",
+  "showFeatured": true,
+  "featured": {
+    "motionbro": false,
+    "autoResize": true,
+    "elements": "8",
+    "durationControl": true,
+    "freeUpdates": true,
+    "lifetimeLicense": true,
+    "support": true
+  },
+  "standard": {
+    "app": {
+      "value": "2024+"
+    },
+    "controlsPanel": true,
+    "autoTextResize": true,
+    "videoTutorial": true,
+    "freeFonts": true,
+    "expressions": true,
+    "structure": true
+  },
+  "extra": [
+    {
+      "title": "Pre-rendered luxury 3D phones",
+      "text": "Cinema-grade 3D phone renders ready to use right inside After Effects without any 3D plugins.",
+      "size": "lg",
+      "tone": "ember"
+    }
+  ],
+  "included": [
+    {
+      "title": "3D Phone Mockup Scenes",
+      "count": 8,
+      "folder": "/media/phone-20-pro-mockups/scenes",
+      "ext": "jpg"
+    }
+  ],
+  "tags": [
+    "mockup",
+    "phone",
+    "3d",
+    "app promo",
+    "ui",
+    "luxury",
+    "promo",
+    "minimal"
+  ]
+}

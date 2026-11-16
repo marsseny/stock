@@ -1,0 +1,37 @@
+{
+  "summary": "Grain Slideshow is a film-textured slideshow for After Effects with warm grain, soft light leaks and smooth kinetic transitions. Drop in your photos and videos, type your titles and render — every scene is already timed to the music. Made for travel stories, wedding recaps, YouTube intros and brand promos.",
+  "application": "after-effects",
+
+  "featured": {
+    "motionbro": true,
+    "autoResize": true,
+    "durationControl": true,
+    "elements": "750+",
+    "freeUpdates": true,
+    "lifetimeLicense": true,
+    "support": true
+  },
+
+  "standard": {
+    "app": { "value": "2024+" },
+    "controlsPanel": true,
+    "autoTextResize": true,
+    "videoTutorial": true,
+    "freeFonts": true,
+    "expressions": true,
+    "structure": true
+  },
+
+  "extra": [],
+
+  "included": [
+    { "title": "Typography", "count": 50 },
+    { "title": "YouTube scenes", "count": 42 },
+    { "title": "Kinetic titles", "count": 36 },
+    { "title": "Standard titles", "count": 30 },
+    { "title": "Lower thirds", "count": 24 },
+    { "title": "Transitions", "count": 40 }
+  ],
+
+  "tags": ["slideshow", "film grain", "photo", "travel", "wedding", "promo"]
+}

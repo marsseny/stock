@@ -1,0 +1,37 @@
+{
+  "summary": "2–3 предложения о проекте: что это, для чего, чем хорош.",
+  "application": "after-effects",
+
+  "showFeatured": false,
+  "featured": {
+    "motionbro": true,
+    "autoResize": true,
+    "durationControl": true,
+    "elements": "750+",
+    "freeUpdates": true,
+    "lifetimeLicense": true,
+    "support": true
+  },
+
+  "standard": {
+    "app": { "value": "2024+" },
+    "controlsPanel": true,
+    "autoTextResize": true,
+    "videoTutorial": true,
+    "freeFonts": true,
+    "expressions": true,
+    "structure": true
+  },
+
+  "extra": [
+    { "size": "md", "icon": "music", "tone": "orchid", "title": "Music included", "text": "Licensed soundtrack in the project folder." },
+    { "size": "sm", "icon": "palette", "title": "Color presets", "text": "12 ready-made palettes" }
+  ],
+
+  "included": [
+    { "title": "Typography", "count": 50, "folder": "/media/your-project-slug/scenes/typography", "ext": "jpg" },
+    { "title": "Lower thirds", "images": ["/media/your-project-slug/scenes/lt-01.jpg", "/media/your-project-slug/scenes/lt-02.jpg"] }
+  ],
+
+  "tags": ["titles", "typography", "youtube"]
+}

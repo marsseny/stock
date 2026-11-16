@@ -1,0 +1,67 @@
+{
+  "slug": "liquid-hud-elements-bundle",
+  "title": "Liquid HUD Elements Bundle",
+  "author": "Your Studio",
+  "category": "after-effects",
+  "tier": "pack",
+  "tags": [
+    "hud",
+    "sci-fi",
+    "interface",
+    "liquid",
+    "futuristic"
+  ],
+  "price": 39,
+  "oldPrice": 59,
+  "itemsCount": 140,
+  "includes": [
+    "40 HUD circles",
+    "30 data panels",
+    "25 liquid transitions",
+    "20 lower thirds",
+    "15 backgrounds",
+    "10 sound effects"
+  ],
+  "resolution": "3840×2160 (4K)",
+  "duration": "0:30",
+  "compatibility": "After Effects 2022+",
+  "fileSize": "4.2 GB",
+  "pluginsRequired": false,
+  "createdAt": "2026-11-12",
+  "specs": [
+    {
+      "label": "Application",
+      "value": "After Effects 2022+"
+    },
+    {
+      "label": "Resolution",
+      "value": "3840×2160 (4K)"
+    },
+    {
+      "label": "Elements",
+      "value": "140"
+    },
+    {
+      "label": "File size",
+      "value": "4.2 GB"
+    },
+    {
+      "label": "Plugins required",
+      "value": "No"
+    },
+    {
+      "label": "Released",
+      "value": "Nov 12, 2026"
+    }
+  ],
+  "description": "A complete HUD toolkit with 140 animated elements. Drag-and-drop, color controls on one panel, works in any resolution. Video tutorial included.",
+  "preview": {
+    "video": "https://YOUR-ZONE.b-cdn.net/previews/liquid-hud-elements-bundle/preview-720.mp4",
+    "poster": "/media/liquid-hud-elements-bundle/poster.jpg"
+  },
+  "download": {
+    "provider": "lemonsqueezy",
+    "fileName": "liquid-hud-elements-bundle_v1.0.zip",
+    "productId": "FILL_IN_AFTER_UPLOAD"
+  }
+}

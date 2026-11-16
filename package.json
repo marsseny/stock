@@ -1,0 +1,28 @@
+{
+  "name": "framehaus",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -b && vite build && rolldown cf/worker.ts --platform browser --format esm --minify -o dist/_worker.js",
+    "preview": "vite preview --host 0.0.0.0",
+    "deploy": "npm run build && wrangler pages deploy dist",
+    "dev:cf": "npm run build && wrangler pages dev dist"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.119.0",
+    "@whop/checkout": "^0.7.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.3.0",
+    "rolldown": "^1.2.19",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.7"
+  }
+}
