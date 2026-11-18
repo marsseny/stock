@@ -115,6 +115,19 @@ export async function findPurchaseBySlugAndEmail(slug: string, email: string): P
   return (data as PurchaseRow | null) ?? null;
 }
 
+/** True when this e-mail PAID for the product (purchases issued by a 100%-off code, receipt `free_…`, do not count). */
+export async function hasPaidPurchase(slug: string, email: string): Promise<boolean> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('purchases')
+    .select('id')
+    .eq('product_slug', slug)
+    .eq('email', email.trim().toLowerCase())
+    .not('whop_receipt_id', 'like', 'free_%')
+    .limit(1);
+  if (error) throw new Error(`Supabase: failed to read purchase — ${error.message}`);
+  return (data?.length ?? 0) > 0;
+}
+
 /** All purchases of this e-mail, newest first (used by My Account via `/api/my-purchases`). */
 export async function listPurchasesByEmail(email: string): Promise<PurchaseRow[]> {
   const { data, error } = await getSupabaseAdmin()

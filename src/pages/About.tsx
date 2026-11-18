@@ -19,8 +19,11 @@ export function About() {
           <p className="muted">Use in unlimited personal and commercial projects. Reselling the source files is not allowed.</p>
         </div>
         <div className="glass-panel" id="sell">
-          <h3>Sell your work</h3>
-          <p className="muted">Authors keep 70% of every sale. Packs and featured placements get extra exposure.</p>
+          <h3>Our authors</h3>
+          <p className="muted">
+            Our core team of designers is complete and we are not recruiting right now — but you can still{' '}
+            <Link to="/become-author">apply to become an author</Link>.
+          </p>
         </div>
       </div>
 

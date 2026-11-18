@@ -24,37 +24,55 @@ const PROMOS: Record<string, number> = { [PROMO_SECOND]: 15, [PROMO_THIRD]: 20, 
 /** A 100%-off code: the product is delivered without the Whop checkout. */
 export const isFreePromo = (promo: PromoInfo | null | undefined): boolean => Boolean(promo && promo.percent >= 100);
 
-export const ACTIVE_PROMO_KEY = 'fh_active_promo';
+/**
+ * Applied promo memory. A code is NEVER filled in automatically from the buyer's account or purchases —
+ * the buyer types it. Once applied, it is remembered for 15 minutes (renewed on every use) so it survives
+ * page changes and the Google sign-in redirect, then it is forgotten. After a completed order it is cleared.
+ */
+export const APPLIED_PROMO_KEY = 'fh_promo_applied';
+/** Older builds saved the loyalty code here permanently and pre-filled it — removed on load. */
+const LEGACY_PROMO_KEY = 'fh_active_promo';
+export const PROMO_TTL_MS = 15 * 60 * 1000;
 
-/** Returns the promo for a code typed by the buyer, or `null` when the code is unknown. */
-export function lookupPromo(raw: string): PromoInfo | null {
-  const code = raw.trim().toUpperCase();
-  const percent = PROMOS[code];
-  return percent ? { code, percent } : null;
-}
-
-/** Promo the buyer unlocks after `purchasesCount` purchases (1 → NEXT15, 2+ → VIP20). */
-export function promoForPurchases(purchasesCount: number): PromoInfo | null {
-  if (purchasesCount >= 2) return { code: PROMO_THIRD, percent: 20 };
-  if (purchasesCount === 1) return { code: PROMO_SECOND, percent: 15 };
-  return null;
+try {
+  localStorage.removeItem(LEGACY_PROMO_KEY);
+} catch {
+  /* storage unavailable */
 }
 
 export function getActivePromo(): PromoInfo | null {
   try {
-    const promo = lookupPromo(localStorage.getItem(ACTIVE_PROMO_KEY) ?? '');
-    return isFreePromo(promo) ? null : promo;
+    const raw = localStorage.getItem(APPLIED_PROMO_KEY);
+    if (!raw) return null;
+    const { code, exp } = JSON.parse(raw) as { code?: string; exp?: number };
+    const promo = lookupPromo(code ?? '');
+    if (!promo || !exp || exp < Date.now() || isFreePromo(promo)) {
+      localStorage.removeItem(APPLIED_PROMO_KEY);
+      return null;
+    }
+    return promo;
   } catch {
     return null;
   }
 }
 
+/** Remembers a code the buyer applied (15 minutes). Free (100%) test codes are never remembered. */
 export function saveActivePromo(code: string): void {
   try {
     const promo = lookupPromo(code);
-    if (promo && !isFreePromo(promo)) localStorage.setItem(ACTIVE_PROMO_KEY, code.trim().toUpperCase());
+    if (promo && !isFreePromo(promo)) {
+      localStorage.setItem(APPLIED_PROMO_KEY, JSON.stringify({ code: promo.code, exp: Date.now() + PROMO_TTL_MS }));
+    }
   } catch {
-    /* storage unavailable (private mode) — the code is still shown on screen */
+    /* storage unavailable (private mode) — the code still works on this page */
+  }
+}
+
+export function clearActivePromo(): void {
+  try {
+    localStorage.removeItem(APPLIED_PROMO_KEY);
+  } catch {
+    /* storage unavailable */
   }
 }
 

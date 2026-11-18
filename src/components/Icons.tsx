@@ -27,6 +27,9 @@ export const Copy = (p: P) => (
 export const Download = (p: P) => (
   <svg {...base} {...p}><path d="M12 4v11M7 10l5 5 5-5" /><path d="M5 20h14" /></svg>
 );
+export const Info = (p: P) => (
+  <svg {...base} {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></svg>
+);
 export const Gift = (p: P) => (
   <svg {...base} {...p}><rect x="3" y="8" width="18" height="5" rx="1" /><path d="M5 13v7h14v-7M12 8v12" /><path d="M12 8S10.5 4 8 4a2 2 0 0 0 0 4h4ZM12 8s1.5-4 4-4a2 2 0 0 1 0 4h-4Z" /></svg>
 );

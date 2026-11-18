@@ -47,8 +47,6 @@ export interface Product {
   createdAt: string;
   /** Used for "popular" sorting only; not shown on the site. */
   sales: number;
-  rating: number;
-  reviewsCount: number;
   /**
    * Rows of the spec table on the product page, in display order.
    * Filled per project in `src/data/product-specs.csv`; when a project has no rows there,
@@ -75,9 +73,8 @@ export interface Review {
   author: string;
   rating: number;
   date: string;
+  /** Optional — a buyer may leave stars only. */
   text: string;
-  /** Real review from a buyer (stored in the database), not a mock. */
-  verified?: boolean;
 }
 
 /* ---------- Detailed project description (product page) ---------- */

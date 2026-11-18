@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { formatPrice } from '../data/products';
 import { discountedPrice, lookupPromo, type PromoInfo } from '../lib/promo';
 import type { Product } from '../types';
-import { PENDING_CHECKOUT_KEY } from './AuthForm';
+import { clearPendingCheckout, readPendingCheckout } from '../lib/pendingCheckout';
 import { Bag } from './Icons';
 import { CheckoutModal } from './CheckoutModal';
 
@@ -20,21 +21,18 @@ export function BuyNowButton({ product, promo = null, size = 'lg', block = false
   const [resumePromo, setResumePromo] = useState<PromoInfo | null>(null);
   const close = useCallback(() => setOpen(false), []);
 
-  // Returning from "Continue with Google": re-open the checkout that started the sign-in (once).
+  const { pathname } = useLocation();
+
+  // Returning from "Continue with Google": re-open the checkout that started the sign-in (once),
+  // only on the page where it was opened (cards for the same product elsewhere stay closed).
   useEffect(() => {
     if (!product.whopPlanId) return;
-    try {
-      const pending = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
-      if (!pending) return;
-      const [slug, code = ''] = pending.split('|');
-      if (slug !== product.slug) return;
-      sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
-      setResumePromo(code ? lookupPromo(code) : null);
-      setOpen(true);
-    } catch {
-      /* storage unavailable */
-    }
-  }, [product.slug, product.whopPlanId]);
+    const pending = readPendingCheckout();
+    if (!pending || pending.slug !== product.slug || pending.path !== pathname) return;
+    clearPendingCheckout();
+    setResumePromo(pending.promo ? lookupPromo(pending.promo) : null);
+    setOpen(true);
+  }, [product.slug, product.whopPlanId, pathname]);
 
   if (!product.whopPlanId) {
     return (

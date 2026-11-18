@@ -150,14 +150,13 @@ function build(): Product[] {
       pluginsRequired: category === 'after-effects' ? rand() < 0.2 : false,
       createdAt: new Date(now - between(1, 420) * 86_400_000).toISOString(),
       sales: tier === 'featured' ? between(800, 4000) : between(20, 1500),
-      rating: Math.round((4 + rand()) * 10) / 10,
-      reviewsCount: 0,
       description:
         tier === 'pack'
           ? `A complete ${title.toLowerCase()} with ${itemsCount} ready-to-use elements. Everything is organized, color-controllable and easy to customize — drop it into your timeline and render.`
           : `${title} is a fully customizable project with clean structure, easy controls and a detailed video tutorial. Change text, colors and media in minutes.`,
       preview: {
-        hueA: between(0, 360),
+        // `rand()` here replaces the removed random `rating` draw, so the seeded sequence — and every slug — stays the same.
+        hueA: (rand(), between(0, 360)),
         hueB: between(0, 360),
         variant: i % 6,
       },
@@ -192,8 +191,6 @@ const REAL_PRODUCTS: Product[] = [
     pluginsRequired: false,
     createdAt: new Date(Date.UTC(2026, 10, 12)).toISOString(),
     sales: 4200,
-    rating: 5.0,
-    reviewsCount: 18,
     description:
       'Premium pack of 8 scenes featuring pre-rendered luxury 3D phone mockups. Simple modular structure, quick edit controllers and free fonts included. No plugins required (music and demo screens not included).',
     preview: {
@@ -211,8 +208,6 @@ const REAL_PRODUCTS: Product[] = [
 
 export const PRODUCTS: Product[] = [...REAL_PRODUCTS, ...build()].map((p) => ({
   ...p,
-  // Derived (not random) so the seeded sequence above — and therefore every slug — stays stable.
-  reviewsCount: p.reviewsCount || Math.max(4, Math.round(p.sales / 30)),
   specs: SPECS_BY_SLUG[p.slug],
   // `src/data/whopPlans.ts` is the shared source of truth for payment/delivery bindings (also used by the server).
   ...(planBySlug(p.slug) ?? {}),

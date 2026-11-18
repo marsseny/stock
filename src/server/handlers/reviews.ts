@@ -3,12 +3,13 @@
  * GET  /api/reviews?mine=1 + Bearer token      — reviews written by the signed-in buyer
  * POST /api/reviews + Bearer token             — { productSlug, rating: 1..5, comment? } create/update own review
  *
- * Only buyers who own the product (a row in `purchases` with their e-mail) can review it; one review per product.
+ * Only buyers who PAID for the product (a non-`free_` row in `purchases` with their e-mail) can review it;
+ * one review per product. Stars-only and stars + comment reviews count equally. Nothing is generated.
  */
 
 import { requireUser } from '../auth';
 import { asString, createHandler, HttpError, json, readJsonBody } from '../http';
-import { findPurchaseBySlugAndEmail, listReviewsByEmail, listReviewsBySlug, upsertReview, type ReviewRow } from '../supabaseAdmin';
+import { hasPaidPurchase, listReviewsByEmail, listReviewsBySlug, upsertReview, type ReviewRow } from '../supabaseAdmin';
 
 export const MAX_COMMENT_LENGTH = 500;
 const SLUG_RE = /^[a-z0-9][a-z0-9-]{0,120}$/;
@@ -55,8 +56,10 @@ export const reviews = createHandler(['GET', 'POST'], async (req) => {
     throw new HttpError(400, 'comment_too_long', `Keep the comment under ${MAX_COMMENT_LENGTH} characters.`);
   }
 
-  const owned = await findPurchaseBySlugAndEmail(productSlug, user.email);
-  if (!owned) throw new HttpError(403, 'not_purchased', 'Only buyers of this project can review it.');
+  // Only real (paying) buyers can rate — no free test claims, no generated or automatic ratings.
+  if (!(await hasPaidPurchase(productSlug, user.email))) {
+    throw new HttpError(403, 'not_purchased', 'Only buyers of this project can review it.');
+  }
 
   const saved = await upsertReview({
     product_slug: productSlug,

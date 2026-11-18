@@ -30,7 +30,7 @@ export function Footer() {
           <h4>Company</h4>
           <Link to="/about">About</Link>
           <Link to="/about#license">License</Link>
-          <Link to="/about#sell">Become an author</Link>
+          <Link to="/become-author">Become an author</Link>
         </div>
       </div>
       <div className="footer__bottom muted">© {new Date().getFullYear()} Nuovo Motion · nuovomotion.com. All rights reserved.</div>

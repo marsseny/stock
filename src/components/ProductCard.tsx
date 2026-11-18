@@ -1,4 +1,4 @@
-import { useState, type FocusEvent } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type FocusEvent, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { categoryById } from '../data/categories';
 import { formatPrice } from '../data/products';
@@ -6,11 +6,44 @@ import { discountedPrice, getActivePromo } from '../lib/promo';
 import type { CategoryId, Product } from '../types';
 import { BuyNowButton } from './BuyNowButton';
 import { Layers } from './Icons';
+import { TaxHint } from './TaxHint';
 import { VideoPreview } from './VideoPreview';
 
-/** "AE" badge that expands to "After Effects" on hover. With `to`, it is also a link (the card's own link sits under it). */
+/**
+ * "AE" badge that expands to "After Effects" on hover / focus.
+ * Smooth: both labels are measured once (and again after web fonts load), then only the badge `width`
+ * animates between the two exact pixel widths while the labels cross-fade — no `max-width` guessing,
+ * no layout jumps. With `to`, it is also a link (the card's own link sits under it).
+ */
 export function AppBadge({ category, to }: { category: CategoryId; to?: string }) {
   const cat = categoryById(category);
+  const ref = useRef<HTMLElement>(null);
+  const [widths, setWidths] = useState<{ short: number; full: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const short = el.querySelector<HTMLElement>('.badge__short');
+      const full = el.querySelector<HTMLElement>('.badge__full');
+      if (!short || !full) return;
+      const style = getComputedStyle(el);
+      const chrome =
+        parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth);
+      // Labels are absolutely positioned, so their box is the natural text width, independent of the animated badge width.
+      const w = (node: HTMLElement) => Math.ceil(node.getBoundingClientRect().width + chrome);
+      setWidths({ short: w(short), full: w(full) });
+    };
+    measure();
+    let alive = true;
+    void document.fonts?.ready.then(() => alive && measure());
+    return () => {
+      alive = false;
+    };
+  }, [cat.short, cat.label]);
+
+  const style = widths ? ({ '--badge-w-short': `${widths.short}px`, '--badge-w-full': `${widths.full}px` } as CSSProperties) : undefined;
+  const className = `badge badge--app ${widths ? 'is-measured' : ''}`;
   const content = (
     <>
       <span className="badge__short" aria-hidden>
@@ -20,11 +53,11 @@ export function AppBadge({ category, to }: { category: CategoryId; to?: string }
     </>
   );
   return to ? (
-    <Link to={to} className="badge badge--app" tabIndex={-1}>
+    <Link ref={ref as RefObject<HTMLAnchorElement>} to={to} className={className} style={style} tabIndex={-1}>
       {content}
     </Link>
   ) : (
-    <span className="badge badge--app">
+    <span ref={ref as RefObject<HTMLSpanElement>} className={className} style={style}>
       {content}
     </span>
   );
@@ -43,7 +76,7 @@ export function TierBadge({ product }: { product: Product }) {
 
 export function ProductCard({ product }: { product: Product }) {
   const [hover, setHover] = useState(false);
-  // Promo saved after a previous purchase (fh_active_promo) is applied to card prices too.
+  // A code the buyer applied in the last 15 minutes (never an automatic one) is shown on card prices too.
   const [promo] = useState(getActivePromo);
   const activePromo = product.whopPlanId ? promo : null;
   const cat = categoryById(product.category);
@@ -97,8 +130,8 @@ export function ProductCard({ product }: { product: Product }) {
                 <strong>{formatPrice(product.price)}</strong>
               </>
             )}
+            <TaxHint />
           </div>
-          <small className="price__tax">+ your country's tax</small>
           <BuyNowButton product={product} promo={activePromo} size="sm" />
         </div>
       </div>

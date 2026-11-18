@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { formatReviewDate } from '../data/reviews';
 import type { ReviewSummary } from '../lib/useProductReviews';
 import type { Product, Review } from '../types';
-import { Check, Close, Star } from './Icons';
+import { Close, Star } from './Icons';
 
 const PREVIEW_COUNT = 4;
 
@@ -25,14 +26,7 @@ function ReviewItem({ review }: { review: Review }) {
         </span>
         <div className="review__who">
           <b>{review.author}</b>
-          <small className="muted">
-            {review.verified && (
-              <span className="review__verified">
-                <Check width={11} height={11} /> Verified buyer ·{' '}
-              </span>
-            )}
-            {formatReviewDate(review.date)}
-          </small>
+          <small className="muted">{formatReviewDate(review.date)}</small>
         </div>
         <Stars value={review.rating} />
       </div>
@@ -58,17 +52,32 @@ export function ReviewsPanel({ product, summary, id }: { product: Product; summa
     <section id={id} className="reviews glass-panel" aria-label="Reviews">
       <div className="reviews__head">
         <h2>Reviews</h2>
-        <span className="rating">
-          <Star width={15} height={15} /> {rating.toFixed(1)}
-          <span className="muted">· {count.toLocaleString('en-US')}</span>
-        </span>
+        {count > 0 && (
+          <span className="rating">
+            <Star width={15} height={15} /> {rating.toFixed(1)}
+            <span className="muted">· {count.toLocaleString('en-US')}</span>
+          </span>
+        )}
       </div>
 
-      <ul className="reviews__list">
-        {reviews.slice(0, PREVIEW_COUNT).map((r) => (
-          <ReviewItem key={r.id} review={r} />
-        ))}
-      </ul>
+      {count === 0 && (
+        <p className="reviews__empty muted">
+          {summary.loading ? 'Loading reviews…' : (
+            <>
+              No reviews yet. Only buyers of this project can rate it — if you bought it, rate it in{' '}
+              <Link to="/account">My Account</Link>.
+            </>
+          )}
+        </p>
+      )}
+
+      {count > 0 && (
+        <ul className="reviews__list">
+          {reviews.slice(0, PREVIEW_COUNT).map((r) => (
+            <ReviewItem key={r.id} review={r} />
+          ))}
+        </ul>
+      )}
 
       {reviews.length > PREVIEW_COUNT && (
         <button className="btn btn--glass btn--block" onClick={() => dialog.current?.showModal()}>

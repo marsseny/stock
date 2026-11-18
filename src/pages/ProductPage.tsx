@@ -1,14 +1,16 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { BuyNowButton } from '../components/BuyNowButton';
-import { Check, Chevron, Close, Star, Ticket } from '../components/Icons';
+import { Chevron, Star } from '../components/Icons';
+import { PromoCodeField } from '../components/PromoCodeField';
+import { TaxHint } from '../components/TaxHint';
 import { ProjectDetails } from '../components/ProjectDetails';
 import { AppBadge, ProductCard, TierBadge } from '../components/ProductCard';
 import { ReviewsPanel } from '../components/Reviews';
 import { VideoPreview } from '../components/VideoPreview';
 import { categoryById } from '../data/categories';
 import { formatPrice, getProduct, related } from '../data/products';
-import { discountedPrice, getActivePromo, lookupPromo, type PromoInfo } from '../lib/promo';
+import { discountedPrice, getActivePromo, type PromoInfo } from '../lib/promo';
 import { useProductReviews } from '../lib/useProductReviews';
 import { NotFound } from './NotFound';
 
@@ -16,10 +18,8 @@ export function ProductPage() {
   const { slug = '' } = useParams();
   const product = getProduct(slug);
   const [showReviews, setShowReviews] = useState(false);
-  // A promo saved after a previous purchase (fh_active_promo) is filled in and applied automatically.
+  // Only a code the buyer typed and applied in the last 15 minutes is remembered — nothing is pre-filled from the account.
   const [promo, setPromo] = useState<PromoInfo | null>(getActivePromo);
-  const [promoInput, setPromoInput] = useState(() => getActivePromo()?.code ?? '');
-  const [promoError, setPromoError] = useState('');
   const reviewSummary = useProductReviews(product);
 
   useEffect(() => setShowReviews(false), [slug]);
@@ -38,23 +38,6 @@ export function ProductPage() {
   const purchasable = Boolean(product.whopPlanId);
   const activePromo = purchasable ? promo : null;
 
-  const applyPromo = (e: FormEvent) => {
-    e.preventDefault();
-    if (!promoInput.trim()) {
-      setPromo(null);
-      setPromoError('');
-      return;
-    }
-    const found = lookupPromo(promoInput);
-    setPromo(found);
-    setPromoError(found ? '' : `“${promoInput.trim()}” is not a valid promo code.`);
-  };
-
-  const removePromo = () => {
-    setPromo(null);
-    setPromoInput('');
-    setPromoError('');
-  };
   // Per-project rows from src/data/product-specs.csv; otherwise the default rows below.
   const defaultSpecs: [string, string | undefined][] = [
     ['Application', product.compatibility],
@@ -98,8 +81,17 @@ export function ProductPage() {
               aria-expanded={showReviews}
               aria-controls="reviews"
             >
-              <Star width={15} height={15} /> {reviewSummary.rating.toFixed(1)}
-              <span className="muted">· {reviewSummary.count.toLocaleString('en-US')} reviews</span>
+              <Star width={15} height={15} />
+              {reviewSummary.count > 0 ? (
+                <>
+                  {reviewSummary.rating.toFixed(1)}
+                  <span className="muted">
+                    · {reviewSummary.count.toLocaleString('en-US')} {reviewSummary.count === 1 ? 'review' : 'reviews'}
+                  </span>
+                </>
+              ) : (
+                <span className="muted">No reviews yet</span>
+              )}
               <Chevron width={15} height={15} className="rating__chev" />
             </button>
 
@@ -116,45 +108,10 @@ export function ProductPage() {
                   <strong>{formatPrice(product.price)}</strong>
                 </>
               )}
+              <TaxHint align="start" />
             </div>
-            <small className="price__tax price__tax--lg">Plus applicable tax (VAT / sales tax) of your country.</small>
 
-            {purchasable && (
-              <form className={`promo-field ${activePromo ? 'is-applied' : ''} ${promoError ? 'is-invalid' : ''}`} onSubmit={applyPromo}>
-                <Ticket width={16} height={16} />
-                <input
-                  value={promoInput}
-                  onChange={(e) => {
-                    setPromoInput(e.target.value.toUpperCase());
-                    setPromoError('');
-                  }}
-                  placeholder="Promo code"
-                  aria-label="Promo code"
-                  autoComplete="off"
-                  spellCheck={false}
-                  maxLength={24}
-                />
-                {activePromo ? (
-                  <>
-                    <span className="promo-field__ok">
-                      <Check width={14} height={14} /> {activePromo.code}
-                    </span>
-                    <button type="button" className="promo-field__btn" onClick={removePromo} aria-label="Remove promo code">
-                      <Close width={14} height={14} />
-                    </button>
-                  </>
-                ) : (
-                  <button type="submit" className="promo-field__btn promo-field__btn--apply">
-                    Apply
-                  </button>
-                )}
-              </form>
-            )}
-            {promoError && (
-              <small className="promo-field__error" role="alert">
-                {promoError}
-              </small>
-            )}
+            {purchasable && <PromoCodeField value={promo} onChange={setPromo} />}
 
             <BuyNowButton product={product} promo={activePromo} block />
             <small className="muted center">Lifetime license · commercial use · instant download</small>

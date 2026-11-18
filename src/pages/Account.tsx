@@ -19,7 +19,7 @@ import {
   type ApiReview,
   type ClaimDownloadResult,
 } from '../lib/api';
-import { promoForPurchases, saveActivePromo } from '../lib/promo';
+import { promoForPurchases } from '../lib/promo';
 import { fetchMyPurchases, isFreePurchase, loadSupabase, missingConfig, useSupabase, type Purchase } from '../lib/supabase';
 
 const formatDate = (iso: string) =>
@@ -95,7 +95,8 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
           </div>
           <CopyButton value={purchase.license_key} label="Copy" />
         </div>
-        <RateProject productSlug={purchase.product_slug} review={review} onSaved={onReviewSaved} />
+        {/* Only paid purchases can be rated: free test files (100%-off code) are not real buyers. */}
+        {!isFreePurchase(purchase) && <RateProject productSlug={purchase.product_slug} review={review} onSaved={onReviewSaved} />}
         {error && <p className="form-error" role="alert">{error}</p>}
       </div>
     </article>
@@ -153,10 +154,8 @@ function Purchases({ session }: { session: Session }) {
     setError('');
     try {
       const list = await fetchMyPurchases();
+      // The loyalty code is only shown in the banner; it is never applied automatically — the buyer types it.
       setItems(list);
-      // Only paid purchases unlock a loyalty code; free files (100%-off code) do not.
-      const promo = promoForPurchases(list.filter((p) => !isFreePurchase(p)).length);
-      if (promo) saveActivePromo(promo.code);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your purchases.');
       setItems([]);

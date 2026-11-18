@@ -1,5 +1,6 @@
 /**
- * POST /api/contact — { message: string, email?: string, website?: string (honeypot) }
+ * POST /api/contact — { message: string, email?: string, website?: string (honeypot),
+ *                      topic?: 'author' (author application), portfolio?: string (link) }
  * Optional Bearer token: a signed-in buyer's account e-mail wins over the typed one.
  *
  * Sends the question to CONTACT_TO_EMAIL (default client@nuovamotion.com) through the Resend API
@@ -16,7 +17,7 @@ const escapeHtml = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c] as string);
 
 export const contact = createHandler(['POST'], async (req) => {
-  const body = await readJsonBody<{ message: string; email: string; website: string }>(req);
+  const body = await readJsonBody<{ message: string; email: string; website: string; topic: string; portfolio: string }>(req);
   // Bots fill every field; people never see this one. Pretend success.
   if (asString(body.website)) return json({ ok: true });
 
@@ -36,6 +37,15 @@ export const contact = createHandler(['POST'], async (req) => {
   const email = user?.email ?? (typed ? normalizeEmail(typed) : undefined);
   if (!email || !isEmail(email)) throw new HttpError(400, 'invalid_email', 'Enter a valid e-mail so we can reply.');
 
+  const isAuthor = asString(body.topic) === 'author';
+  const portfolio = (asString(body.portfolio) ?? '').slice(0, 300);
+  if (portfolio && !/^https?:\/\/\S+$/i.test(portfolio)) {
+    throw new HttpError(400, 'invalid_portfolio', 'Portfolio must be a link starting with https://');
+  }
+  const subject = isAuthor ? `Author application from ${email}` : `Question from ${email}`;
+  const portfolioText = portfolio ? `Portfolio: ${portfolio}\n` : '';
+  const portfolioHtml = portfolio ? `<p><b>Portfolio:</b> <a href="${escapeHtml(portfolio)}">${escapeHtml(portfolio)}</a></p>` : '';
+
   const to = getEnv('CONTACT_TO_EMAIL') ?? 'client@nuovamotion.com';
   const from = getEnv('CONTACT_FROM_EMAIL') ?? 'Nuova Motion <noreply@nuovamotion.com>';
   const res = await fetch('https://api.resend.com/emails', {
@@ -45,9 +55,9 @@ export const contact = createHandler(['POST'], async (req) => {
       from,
       to: [to],
       reply_to: email,
-      subject: `Question from ${email}`,
-      text: `From: ${email}${user ? ' (signed in)' : ''}\n\n${message}`,
-      html: `<p><b>From:</b> ${escapeHtml(email)}${user ? ' (signed in)' : ''}</p><p style="white-space:pre-wrap">${escapeHtml(message)}</p>`,
+      subject,
+      text: `${isAuthor ? 'AUTHOR APPLICATION\n' : ''}From: ${email}${user ? ' (signed in)' : ''}\n${portfolioText}\n${message}`,
+      html: `${isAuthor ? '<p><b>Author application</b></p>' : ''}<p><b>From:</b> ${escapeHtml(email)}${user ? ' (signed in)' : ''}</p>${portfolioHtml}<p style="white-space:pre-wrap">${escapeHtml(message)}</p>`,
     }),
   });
   if (!res.ok) {

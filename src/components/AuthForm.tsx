@@ -4,9 +4,6 @@ import { initialLinkError, loadSupabase } from '../lib/supabase';
 const RESEND_COOLDOWN = 60;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** sessionStorage key: `slug|PROMO` of the checkout that re-opens after the Google redirect. */
-export const PENDING_CHECKOUT_KEY = 'fh_pending_checkout';
-
 interface Props {
   eyebrow?: string;
   title?: ReactNode;

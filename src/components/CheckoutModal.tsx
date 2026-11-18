@@ -3,15 +3,18 @@ import { loadWhop } from '@whop/elements';
 import { Checkout, CheckoutElement, WhopElements } from '@whop/elements-react';
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { formatPrice } from '../data/products';
 import { ApiError, claimDownload, claimFree, type ClaimDownloadResult } from '../lib/api';
-import { discountedPrice, isFreePromo, lookupPromo, PROMO_SECOND, PROMO_THIRD, saveActivePromo, type PromoInfo } from '../lib/promo';
+import { savePendingCheckout } from '../lib/pendingCheckout';
+import { clearActivePromo, discountedPrice, isFreePromo, lookupPromo, PROMO_SECOND, PROMO_THIRD, type PromoInfo } from '../lib/promo';
 import { useSupabase } from '../lib/supabase';
 import type { Product } from '../types';
-import { GoogleLogo, PENDING_CHECKOUT_KEY } from './AuthForm';
+import { GoogleLogo } from './AuthForm';
 import { CopyButton } from './CopyButton';
-import { Check, Close, Download, Gift, Ticket } from './Icons';
+import { Check, Close, Download, Gift } from './Icons';
+import { PromoCodeField } from './PromoCodeField';
+import { TaxHint } from './TaxHint';
 
 /**
  * One-window purchase:
@@ -26,7 +29,7 @@ interface Props {
   product: Product;
   open: boolean;
   onClose: () => void;
-  /** Promo already applied on the page; pre-fills the promo field. */
+  /** Promo the buyer already applied on the page (typed by them, never automatic). */
   promo?: PromoInfo | null;
 }
 
@@ -56,15 +59,14 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
-  const [promoInput, setPromoInput] = useState('');
   const [promo, setPromo] = useState<PromoInfo | null>(null);
-  const [promoError, setPromoError] = useState('');
   const [googleBusy, setGoogleBusy] = useState(false);
   const [result, setResult] = useState<ClaimDownloadResult | null>(null);
   const [error, setError] = useState('');
   const receiptRef = useRef<{ planId: string; receiptId: string } | null>(null);
   const aliveRef = useRef(true);
   const ids = useId();
+  const { pathname } = useLocation();
 
   useEffect(() => {
     aliveRef.current = true;
@@ -80,9 +82,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
     setResult(null);
     setError('');
     setEmailError('');
-    setPromoError('');
     setPromo(initialPromo);
-    setPromoInput(initialPromo?.code ?? '');
     setEmail((prev) => prev || readLastEmail());
     receiptRef.current = null;
   }, [open, product.slug, initialPromo]);
@@ -126,7 +126,8 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   };
 
   const finish = (data: ClaimDownloadResult) => {
-    if (lookupPromo(data.nextPromoCode)) saveActivePromo(data.nextPromoCode);
+    // The applied code is used up; the next loyalty code is only shown — the buyer types it next time.
+    clearActivePromo();
     setResult(data);
     setStage('ready');
   };
@@ -137,23 +138,6 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   };
 
   /* ----------------------------- step 1: details ----------------------------- */
-
-  const applyPromo = (): PromoInfo | null | false => {
-    const raw = promoInput.trim();
-    if (!raw) {
-      setPromo(null);
-      return null;
-    }
-    const found = lookupPromo(raw);
-    if (!found) {
-      setPromoError('This promo code is not valid.');
-      setPromo(null);
-      return false;
-    }
-    setPromoError('');
-    setPromo(found);
-    return found;
-  };
 
   const claimFreeNow = useCallback(
     async (code: string, buyerEmail: string) => {
@@ -176,29 +160,24 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
       setEmailError('Enter a valid e-mail address.');
       return;
     }
-    const applied = applyPromo();
-    if (applied === false) return;
     setEmail(clean);
     try {
       localStorage.setItem(LAST_EMAIL_KEY, clean);
     } catch {
       /* private mode */
     }
-    if (isFreePromo(applied)) void claimFreeNow(applied!.code, clean);
+    if (promo && isFreePromo(promo)) void claimFreeNow(promo.code, clean);
     else setStage('pay');
   };
 
   const google = async () => {
     if (!supabase) return;
     setGoogleBusy(true);
-    try {
-      sessionStorage.setItem(PENDING_CHECKOUT_KEY, `${product.slug}|${promoInput.trim().toUpperCase()}`);
-    } catch {
-      /* the buyer just clicks Buy now again after returning */
-    }
+    // Come back to this exact page with this checkout open (see lib/pendingCheckout.ts).
+    savePendingCheckout({ slug: product.slug, path: pathname, promo: promo?.code ?? '' });
     const { error: err } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.href.split('#')[0] },
+      options: { redirectTo: `${window.location.origin}${pathname}` },
     });
     if (err) {
       setGoogleBusy(false);
@@ -277,7 +256,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
               {promo && <s>{formatPrice(product.price)}</s>}
               <strong>{formatPrice(price)}</strong>
             </div>
-            <small className="price__tax">+ your country's tax</small>
+            <TaxHint />
           </div>
           <button type="button" className="btn btn--glass btn--icon" onClick={onClose} disabled={!canClose} aria-label="Close checkout">
             <Close />
@@ -331,31 +310,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
               </>
             )}
 
-            <div className={`promo-field ${promo ? 'is-applied' : ''} ${promoError ? 'is-invalid' : ''}`}>
-              <Ticket width={18} height={18} />
-              <input
-                value={promoInput}
-                onChange={(e) => {
-                  setPromoInput(e.target.value.toUpperCase());
-                  setPromoError('');
-                  setPromo(null);
-                }}
-                onBlur={() => promoInput.trim() && applyPromo()}
-                placeholder="Promo code (optional)"
-                aria-label="Promo code"
-                autoComplete="off"
-              />
-              {promo && (
-                <span className="promo-field__ok">
-                  <Check width={14} height={14} /> -{promo.percent}%
-                </span>
-              )}
-            </div>
-            {promoError && (
-              <small className="promo-field__error" role="alert">
-                {promoError}
-              </small>
-            )}
+            <PromoCodeField value={promo} onChange={setPromo} />
 
             <button type="submit" className="btn btn--accent btn--lg btn--block">
               {freeMode ? (
