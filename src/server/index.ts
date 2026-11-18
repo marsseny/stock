@@ -6,6 +6,8 @@ export { contact } from './handlers/contact';
 export { reviews } from './handlers/reviews';
 export { getDownloadUrl } from './handlers/getDownloadUrl';
 export { publicConfig } from './handlers/publicConfig';
+export { myPurchases } from './handlers/myPurchases';
+export { authProxy } from './handlers/authProxy';
 export { whopWebhook } from './handlers/whopWebhook';
 export { setServerEnv } from './env';
 export type { Handler } from './http';
@@ -16,6 +18,8 @@ import { contact } from './handlers/contact';
 import { reviews } from './handlers/reviews';
 import { getDownloadUrl } from './handlers/getDownloadUrl';
 import { publicConfig } from './handlers/publicConfig';
+import { myPurchases } from './handlers/myPurchases';
+import { authProxy, AUTH_PROXY_PREFIX } from './handlers/authProxy';
 import { whopWebhook } from './handlers/whopWebhook';
 import type { Handler } from './http';
 
@@ -28,4 +32,15 @@ export const routes: Record<string, Handler> = {
   reviews,
   contact,
   'public-config': publicConfig,
+  'my-purchases': myPurchases,
 };
+
+/**
+ * Resolves a handler for a path relative to `/api/` (e.g. `reviews`, `sb/auth/v1/otp`).
+ * Use this in custom servers / Workers instead of indexing `routes` directly.
+ */
+export function resolveRoute(path: string): Handler | undefined {
+  const clean = path.replace(/^\/+/, '').replace(/\/+$/, '');
+  if (clean.startsWith(AUTH_PROXY_PREFIX)) return authProxy;
+  return routes[clean];
+}

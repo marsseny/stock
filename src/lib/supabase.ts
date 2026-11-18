@@ -3,12 +3,13 @@
  *
  * The public config is resolved in this order:
  *   1. build-time `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` (from the build env or `public.env`);
- *   2. runtime `GET /api/public-config` (server env `SUPABASE_URL` + `SUPABASE_ANON_KEY`).
+ *   2. runtime `GET /api/public-config` (server env `SUPABASE_URL` + `SUPABASE_ANON_KEY`);
+ *   3. if the server has no public key but does have `SUPABASE_SERVICE_ROLE_KEY`, sign-in goes through
+ *      the server's auth proxy `/api/sb/auth/v1/*` (the key never reaches the browser).
  *
- * (2) exists because the hosting build often has no VITE_ variables: before, the client was `null`
- * and My Account showed "not available". Now setting the variables only on the server is enough.
- * The client is created once; the magic-link tokens in the URL (`#access_token=…`) are picked up by
- * `detectSessionInUrl` as soon as it is created.
+ * So My Account works as soon as the server has SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (which the
+ * checkout already needs). The client is created once; the magic-link tokens in the URL
+ * (`#access_token=…`) are picked up by `detectSessionInUrl` as soon as it is created.
  */
 
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
@@ -28,11 +29,24 @@ function create(url: string, key: string): SupabaseClient {
   });
 }
 
-async function fetchRuntimeConfig(): Promise<{ supabaseUrl?: string; supabaseAnonKey?: string }> {
+interface RuntimeConfig {
+  supabaseUrl?: string | null;
+  supabaseAnonKey?: string | null;
+  authProxy?: boolean;
+  missing?: string[];
+}
+
+/** Variables the server reported as missing (shown on the "not available" screen). */
+export let missingConfig: string[] = [];
+
+/** Placeholder key for proxy mode — the real key is added by the server. */
+const PROXY_KEY = 'server-proxy';
+
+async function fetchRuntimeConfig(): Promise<RuntimeConfig> {
   try {
-    const res = await fetch(`${API()}/public-config`, { headers: { Accept: 'application/json' } });
+    const res = await fetch(`${API()}/public-config`, { headers: { Accept: 'application/json' }, cache: 'no-store' });
     if (!res.ok) return {};
-    return (await res.json()) as { supabaseUrl?: string; supabaseAnonKey?: string };
+    return (await res.json()) as RuntimeConfig;
   } catch {
     return {};
   }
@@ -48,7 +62,9 @@ export function loadSupabase(): Promise<SupabaseClient | null> {
         return client;
       }
       const cfg = await fetchRuntimeConfig();
+      missingConfig = cfg.missing ?? [];
       if (cfg.supabaseUrl && cfg.supabaseAnonKey) client = create(cfg.supabaseUrl, cfg.supabaseAnonKey);
+      else if (cfg.authProxy) client = create(new URL(`${API()}/sb`, window.location.origin).href, PROXY_KEY);
       else loading = null; // allow a later retry (e.g. a network hiccup)
       return client;
     })();
@@ -110,16 +126,21 @@ export interface Purchase {
 /** Products issued with a 100%-off code (`/api/claim-free`) — free files, not paid purchases. */
 export const isFreePurchase = (p: Pick<Purchase, 'whop_receipt_id'>): boolean => p.whop_receipt_id.startsWith('free_');
 
-/** Purchases of the signed-in user, newest first. Returns an empty list when signed out or not configured. */
+/**
+ * Purchases of the signed-in user, newest first, loaded by the server (`/api/my-purchases`, matched by
+ * the verified e-mail of the session). Returns an empty list when signed out or not configured.
+ */
 export async function fetchMyPurchases(): Promise<Purchase[]> {
   const supabase = await loadSupabase();
   if (!supabase) return [];
   const { data: session } = await supabase.auth.getSession();
-  if (!session.session) return [];
-  const { data, error } = await supabase
-    .from('purchases')
-    .select('id, email, product_slug, whop_plan_id, whop_receipt_id, license_key, r2_object_key, created_at')
-    .order('created_at', { ascending: false });
-  if (error) throw new Error(error.message);
-  return (data ?? []) as Purchase[];
+  const token = session.session?.access_token;
+  if (!token) return [];
+  const res = await fetch(`${API()}/my-purchases`, {
+    headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+    cache: 'no-store',
+  });
+  const body = (await res.json().catch(() => null)) as { purchases?: Purchase[]; message?: string } | null;
+  if (!res.ok) throw new Error(body?.message ?? `Could not load your purchases (HTTP ${res.status}).`);
+  return body?.purchases ?? [];
 }

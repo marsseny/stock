@@ -1,6 +1,36 @@
 # Почему не работал раздел My Account и что исправлено
 
-## Причина
+## Обновление 2 (18.11.2026): «My Account is not available yet» после настройки
+
+**Что увидели на живом сайте.** На `https://nuovamotion.pages.dev` уже работает исправленный код, но сервер
+на `GET /api/public-config` отвечал `{"supabaseUrl":"https://…supabase.co","supabaseAnonKey":null}`.
+Значит, адрес Supabase воркер видит, а публичный ключ (`SUPABASE_ANON_KEY`) до него не дошёл. Частые причины:
+- переменную добавили, но **не сделали новый деплой**: в Cloudflare Pages переменные применяются только к новым деплоям;
+- переменную добавили только в Preview или только в Production;
+- открыт старый адрес вида `https://06af13a5.nuovamotion.pages.dev`. Это **замороженный старый деплой**,
+  на нём всегда будет старая версия (там нет даже `/api/public-config`). Смотрите основной адрес
+  `nuovamotion.pages.dev` / свой домен или адрес последнего деплоя.
+
+**Что изменено, чтобы это больше не ломало вход:**
+1. **Вход работает без `SUPABASE_ANON_KEY`.** Если публичного ключа нет, браузер отправляет запросы входа через сервер
+   (`/api/sb/auth/v1/*`), а сервер подставляет ключ сам. Нужны только `SUPABASE_URL` и `SUPABASE_SERVICE_ROLE_KEY`,
+   которые и так нужны для оформления заказа. Секретный ключ в браузер не попадает. Через сервер проходят только
+   нужные для входа запросы: отправка ссылки, проверка, обновление сессии, текущий пользователь и выход.
+   Админские запросы Supabase и база данных через него недоступны.
+2. **Покупки в аккаунте загружает сервер** (`GET /api/my-purchases`) по подтверждённой почте из сессии.
+3. **Ключ ищется под разными именами** (`SUPABASE_ANON_KEY`, `SUPABASE_PUBLISHABLE_KEY`, `VITE_SUPABASE_ANON_KEY`,
+   `PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_KEY` …). Если по ошибке вставить туда
+   service_role / `sb_secret_` ключ, сервер его не отдаст браузеру.
+4. `/api/public-config` больше не кэшируется, а экран «not available» показывает, какой переменной не хватает.
+
+**Что сделать:** загрузить этот архив в репозиторий, сделать новый деплой и открыть `/account` на основном домене.
+Проверка: `https://<домен>/api/public-config` должен вернуть либо `supabaseAnonKey` (прямой режим), либо
+`"authProxy": true` (вход через сервер). Оба варианта рабочие.
+Пункт 2 из чек-листа ниже (Redirect URLs в Supabase) по-прежнему обязателен, иначе ссылка из письма уведёт на Site URL.
+
+---
+
+## Причина (первая версия исправления)
 В собранном сайте (тестовый стенд на Cloudflare Pages) не было публичных переменных
 `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`: файла `public.env` в репозитории нет, а в настройках
 сборки этих переменных тоже нет. Из-за этого браузерный клиент Supabase не создавался, и страница
@@ -9,39 +39,25 @@
 
 ## Что исправлено
 1. **Вход по ссылке работает без переменных сборки.** Браузер сначала берёт `VITE_SUPABASE_*` из сборки,
-   а если их нет, запрашивает `GET /api/public-config` у сервера. Сервер отдаёт только публичные значения
-   (URL и anon-ключ), service-ключ никогда не отдаётся.
+   а если их нет, запрашивает `GET /api/public-config` у сервера (а теперь, если и там нет ключа, входит через серверный прокси).
 2. **Понятные ошибки ссылки.** Если ссылка просрочена или уже использована, пользователь видит пояснение
    и может сразу запросить новую.
 3. **Приветствие после входа.** Блок «Welcome, Имя!» с благодарностью за то, что человек стал нашим клиентом.
 4. **Промокод только после платной покупки.** Бесплатные файлы (выданные по коду `TEST100`, receipt `free_…`)
    промокод не открывают: ни в аккаунте, ни в окне оформления заказа. Сервер тоже считает только платные покупки.
 5. Список покупок со ссылками на товары, лицензионным ключом, кнопкой **Download ZIP** и звёздами →
-   короткий отзыв → отзыв публикуется на странице товара с меткой *Verified buyer* (эта часть уже была в коде
-   и теперь заработала, потому что вход работает).
+   короткий отзыв → отзыв публикуется на странице товара с меткой *Verified buyer*.
 6. Добавлены `.env.example` и `.gitignore`; файл `framehaus-v11.zip` из корня репозитория в архив не включён.
 
-## Что нужно сделать вам (один раз)
-1. **Cloudflare Pages → Settings → Variables and Secrets** (Production и Preview): добавьте
-   `SUPABASE_ANON_KEY` = anon / publishable key из Supabase → Project Settings → API.
-   Это публичный ключ (не service_role). Как вариант, можно задать `VITE_SUPABASE_URL` и `VITE_SUPABASE_ANON_KEY`
-   как переменные сборки.
+## Чек-лист настройки (один раз)
+1. **Cloudflare Pages → Settings → Variables and Secrets** (Production и Preview): должны быть `SUPABASE_URL`
+   и `SUPABASE_SERVICE_ROLE_KEY` (уже есть). `SUPABASE_ANON_KEY` теперь не обязателен, но желателен:
+   тогда браузер ходит в Supabase напрямую. **После изменения переменных нужен новый деплой.**
 2. **Supabase → Authentication → URL Configuration:**
    - Site URL: ваш основной домен (например `https://nuovamotion.com`);
-   - Redirect URLs: `https://<ваш-домен>/**` и для превью-деплоев `https://*.nuovamotion.pages.dev/**`.
-   Без этого Supabase отправит человека на Site URL вместо `/account` тестового сайта.
+   - Redirect URLs: `https://<ваш-домен>/**`, `https://nuovamotion.pages.dev/**` и для превью-деплоев `https://*.nuovamotion.pages.dev/**`.
 3. **Supabase → Authentication → Email Templates → Magic Link:** в письме должна быть ссылка
-   `{{ .ConfirmationURL }}` (в стандартном шаблоне она есть). Раньше README советовал `{{ .Token }}`
-   (6-значный код), но сейчас вход идёт по ссылке.
-4. Для реальной рассылки писем лучше подключить свой SMTP (Supabase → Authentication → SMTP Settings),
+   `{{ .ConfirmationURL }}` (в стандартном шаблоне она есть).
+4. Для реальной рассылки писем подключите свой SMTP (Supabase → Authentication → SMTP Settings),
    потому что у встроенного почтового сервиса Supabase очень низкий лимит писем в час.
 5. Если таблица `reviews` ещё не создана, выполните `supabase/schema.sql` в SQL Editor (скрипт идемпотентный).
-
-## Изменённые файлы
-- `src/lib/supabase.ts` — загрузка конфигурации во время работы, `loadSupabase()`, `useSupabase()`, `isFreePurchase`, ошибки ссылки
-- `src/server/handlers/publicConfig.ts` (новый), `src/server/index.ts` — маршрут `/api/public-config`
-- `src/server/promo.ts`, `src/server/supabaseAdmin.ts`, `src/server/handlers/claimDownload.ts`, `claimFree.ts` — промокод только за платные покупки
-- `src/pages/Account.tsx` — приветствие, промокод для платных покупателей, метка бесплатных файлов
-- `src/components/AuthForm.tsx`, `RateProject.tsx`, `CheckoutModal.tsx` — новый способ получения клиента
-- `src/styles/global.css` — стили блока приветствия
-- `README.md`, `AGENTS.md`, `.env.example`, `.gitignore`

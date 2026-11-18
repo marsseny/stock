@@ -115,6 +115,18 @@ export async function findPurchaseBySlugAndEmail(slug: string, email: string): P
   return (data as PurchaseRow | null) ?? null;
 }
 
+/** All purchases of this e-mail, newest first (used by My Account via `/api/my-purchases`). */
+export async function listPurchasesByEmail(email: string): Promise<PurchaseRow[]> {
+  const { data, error } = await getSupabaseAdmin()
+    .from('purchases')
+    .select(PURCHASE_COLUMNS)
+    .eq('email', email.trim().toLowerCase())
+    .order('created_at', { ascending: false })
+    .limit(500);
+  if (error) throw new Error(`Supabase: failed to read purchases — ${error.message}`);
+  return (data as PurchaseRow[] | null) ?? [];
+}
+
 /* ----------------------------------- Reviews ----------------------------------- */
 
 export interface ReviewRow {

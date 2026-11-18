@@ -20,7 +20,7 @@ import {
   type ClaimDownloadResult,
 } from '../lib/api';
 import { promoForPurchases, saveActivePromo } from '../lib/promo';
-import { fetchMyPurchases, isFreePurchase, loadSupabase, useSupabase, type Purchase } from '../lib/supabase';
+import { fetchMyPurchases, isFreePurchase, loadSupabase, missingConfig, useSupabase, type Purchase } from '../lib/supabase';
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -582,6 +582,11 @@ export function Account() {
           <div className="notice glass-panel">
             <h1>My Account is not available yet</h1>
             <p className="muted">Buyer accounts are not configured on this storefront. Please check back soon.</p>
+            {missingConfig.length > 0 && (
+              <p className="muted small">
+                Server setup: add {missingConfig.join(', ')} to the hosting environment variables and redeploy.
+              </p>
+            )}
           </div>
         ) : !ready ? (
           <div className="account__loading">

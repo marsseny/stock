@@ -38,7 +38,9 @@ Platform-independent: all server code lives in `src/server/` and exposes standar
 | `POST /api/whop-webhook` | `payment.succeeded` → idempotent insert into `purchases` (signature checked with `WHOP_WEBHOOK_SECRET`) |
 | `GET /api/get-download-url?purchaseId=` + `Authorization: Bearer <supabase token>` | Fresh presigned R2 link for the signed-in owner |
 | `POST /api/claim-free` `{ productSlug, promoCode }` + Bearer | 100%-off code (`TEST100`): records the purchase without Whop, same response as `claim-download` |
-| `GET /api/public-config` | Public runtime config for the browser: `{ supabaseUrl, supabaseAnonKey }` (never the service key) |
+| `GET /api/public-config` | Public runtime config for the browser: `{ supabaseUrl, supabaseAnonKey, authProxy, missing }` (never the service key) |
+| `GET /api/my-purchases` | Purchases of the signed-in buyer (Bearer token) |
+| `/api/sb/auth/v1/*` | Sign-in proxy, used only when no public key is set on the server (allow-listed end-user Auth endpoints) |
 | `GET /api/reviews?slug=` | Public reviews of a product (no e-mails) |
 | `GET /api/reviews?mine=1` + Bearer | Reviews of the signed-in buyer |
 | `POST /api/reviews` `{ productSlug, rating, comment }` + Bearer | Create/update own review (only for purchased products) |
@@ -48,7 +50,7 @@ Platform-independent: all server code lives in `src/server/` and exposes standar
 - Product ↔ Whop plan ↔ R2 file bindings: `src/data/whopPlans.ts` (shared by the storefront and the server).
 - Frontend helpers: `src/lib/supabase.ts` (browser client), `src/lib/api.ts` (typed calls to `/api/*`, base URL `VITE_API_BASE_URL`).
 - Supabase Auth → Email templates → *Magic Link*: must contain the link `{{ .ConfirmationURL }}` (the default template does). Supabase → Authentication → URL Configuration: **Site URL** = your production domain; **Redirect URLs** must include `https://<your-domain>/account` (or `https://<your-domain>/**`) and, for preview deploys, e.g. `https://*.<project>.pages.dev/**`. Otherwise Supabase sends the buyer to the Site URL instead of `/account`.
-- **Supabase public config at runtime:** the browser needs the Supabase URL + anon (publishable) key. They are taken from build-time `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` if present, otherwise from `GET /api/public-config`, which reads the server variables `SUPABASE_URL` + `SUPABASE_ANON_KEY`. So it is enough to set `SUPABASE_ANON_KEY` next to the other server secrets.
+- **Supabase public config at runtime:** the browser needs the Supabase URL + anon (publishable) key. They are taken from build-time `VITE_SUPABASE_URL` / `VITE_SUPABASE_ANON_KEY` if present, otherwise from `GET /api/public-config`, which reads the server variables `SUPABASE_URL` + `SUPABASE_ANON_KEY`. So it is enough to set `SUPABASE_ANON_KEY` next to the other server secrets. If no public key is set at all, sign-in still works through the server proxy `/api/sb/auth/v1/*` using `SUPABASE_SERVICE_ROLE_KEY` (the key stays on the server). A secret key put into `SUPABASE_ANON_KEY` by mistake is ignored, never sent to the browser.
 - Environment: see `.env.example`. Secrets are set in the hosting dashboard, never committed. Without `WHOP_API_KEY`, claims are accepted unverified only on `localhost` or with `ALLOW_TEST_CLAIMS=true`.
 
 ## Why My Account did not work (fixed)

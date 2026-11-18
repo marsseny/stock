@@ -1,5 +1,5 @@
 /** Cloudflare Pages advanced-mode entry (_worker.js): /api/* → handlers, everything else → static assets. */
-import { routes, setServerEnv } from '../src/server/index';
+import { resolveRoute, setServerEnv } from '../src/server/index';
 
 interface Env { ASSETS: { fetch: (r: Request) => Promise<Response> }; [k: string]: unknown }
 
@@ -8,7 +8,7 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/')) {
       setServerEnv(env);
-      const handler = routes[url.pathname.slice(5).replace(/\/+$/, '')];
+      const handler = resolveRoute(url.pathname.slice(5));
       if (!handler) return Response.json({ error: 'not_found', message: 'Unknown API route.' }, { status: 404 });
       return handler(request);
     }
