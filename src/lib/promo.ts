@@ -21,6 +21,23 @@ export interface PromoInfo {
 
 const PROMOS: Record<string, number> = { [PROMO_SECOND]: 15, [PROMO_THIRD]: 20, [PROMO_FREE]: 100 };
 
+/** Finds a known promo code (case-insensitive, surrounding spaces ignored); `null` for an unknown code. */
+export function lookupPromo(raw: string): PromoInfo | null {
+  const code = raw.trim().toUpperCase();
+  if (!code) return null;
+  const percent = PROMOS[code];
+  return percent ? { code, percent } : null;
+}
+
+/**
+ * Loyalty code the buyer has unlocked, shown (never applied) on the account page.
+ * Mirrors the server rule: 0 paid purchases → none, 1 → NEXT15 (15%), 2+ → VIP20 (20%).
+ */
+export function promoForPurchases(paidPurchasesCount: number): PromoInfo | null {
+  if (paidPurchasesCount <= 0) return null;
+  return paidPurchasesCount >= 2 ? { code: PROMO_THIRD, percent: 20 } : { code: PROMO_SECOND, percent: 15 };
+}
+
 /** A 100%-off code: the product is delivered without the Whop checkout. */
 export const isFreePromo = (promo: PromoInfo | null | undefined): boolean => Boolean(promo && promo.percent >= 100);
 
