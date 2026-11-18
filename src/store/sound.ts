@@ -6,7 +6,7 @@ import { useSyncExternalStore } from 'react';
  * once they mute it, it stays muted. Persisted in sessionStorage for the current visit.
  */
 
-const KEY = 'framehaus:sound';
+const KEY = 'nuovomotion:sound';
 const listeners = new Set<() => void>();
 
 let soundOn = (() => {

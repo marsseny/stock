@@ -14,7 +14,7 @@ interface Props {
   block?: boolean;
 }
 
-/** "Buy now · $XX" — opens the one-window checkout (e-mail/Google + promo → Whop → ZIP) for this product. */
+/** "Buy now" (the price is shown next to it) — opens the one-window checkout (e-mail/Google + promo → Whop → ZIP) for this product. */
 export function BuyNowButton({ product, promo = null, size = 'lg', block = false }: Props) {
   const [open, setOpen] = useState(false);
   const [resumePromo, setResumePromo] = useState<PromoInfo | null>(null);
@@ -59,7 +59,7 @@ export function BuyNowButton({ product, promo = null, size = 'lg', block = false
         aria-label={`Buy ${product.title} now for ${label}`}
       >
         <Bag width={size === 'sm' ? 16 : 18} height={size === 'sm' ? 16 : 18} />
-        Buy now · {label}
+        Buy now
       </button>
       <CheckoutModal product={product} open={open} onClose={close} promo={resumePromo ?? promo} />
     </>

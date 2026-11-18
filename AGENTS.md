@@ -26,6 +26,12 @@ SPA: Vite + React 19 + React Router 7 (`BrowserRouter`), TypeScript, a single ha
 - Frontend must stay host-agnostic: API calls use `${import.meta.env.VITE_API_BASE_URL || '/api'}/<route>` only; never reference the hosting provider in `src/` or `api/`.
 
 ## Conventions / decisions
+- Brand: **Nuovo Motion** (future domain nuovomotion.com). Logo = `src/components/Logo.tsx` (`LogoMark` lime tile with a slanted "N" + wordmark), same drawing as `public/favicon.svg`. Internal storage keys keep the old `fh_` prefix on purpose so saved promos / pending checkouts survive the rename. `wrangler.toml` `name` is left as is (deploy config).
+- No progress bar on card previews (removed on request). The only timeline is the scrubbable `.player__timeline` on the product page.
+- Prices are always followed by `.price__tax` ("+ your country's tax"); the Buy now button does not repeat the price.
+- App badges use `AppBadge` (`ProductCard.tsx`): short code ("AE") that expands to the full category label on hover. On cards it is a link to the product so clicking it still opens the item.
+- Shop dropdown / mobile menu / nav pill are near-opaque dark glass (readability over previews) — do not make them translucent again.
+- Home hero copy must not mention product counts (the catalogue is small and curated).
 - All previews are 16:9 and look identical regardless of tier; packs are distinguished only by the "Pack · N items" badge (the old stacked-card look was removed on purpose).
 - No play-button overlay on previews.
 - `preview.hueA/hueB/variant` only drive the placeholder; make them optional when real products with `video`/`poster` are added.

@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import { CATEGORIES } from '../data/categories';
+import { Logo } from './Logo';
 
 export function Footer() {
   return (
     <footer className="footer">
       <div className="footer__inner">
         <div>
-          <Link to="/" className="logo">
-            <span className="logo__mark" />
-            Framehaus
+          <Link to="/" className="logo" aria-label="Nuovo Motion home">
+            <Logo />
           </Link>
           <p className="muted">Premium templates, plugins and packs for video creators.</p>
         </div>
@@ -33,7 +33,7 @@ export function Footer() {
           <Link to="/about#sell">Become an author</Link>
         </div>
       </div>
-      <div className="footer__bottom muted">© {new Date().getFullYear()} Framehaus. All rights reserved.</div>
+      <div className="footer__bottom muted">© {new Date().getFullYear()} Nuovo Motion · nuovomotion.com. All rights reserved.</div>
     </footer>
   );
 }

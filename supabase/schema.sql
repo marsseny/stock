@@ -1,5 +1,5 @@
 -- =====================================================================
--- Framehaus — purchases & license keys (Supabase / PostgreSQL)
+-- Nuovo Motion — purchases & license keys (Supabase / PostgreSQL)
 --
 -- Run once in Supabase Dashboard → SQL Editor (or `supabase db push`).
 -- The script is idempotent: it can be executed again safely.

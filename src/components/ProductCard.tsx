@@ -3,10 +3,32 @@ import { Link } from 'react-router-dom';
 import { categoryById } from '../data/categories';
 import { formatPrice } from '../data/products';
 import { discountedPrice, getActivePromo } from '../lib/promo';
-import type { Product } from '../types';
+import type { CategoryId, Product } from '../types';
 import { BuyNowButton } from './BuyNowButton';
 import { Layers } from './Icons';
 import { VideoPreview } from './VideoPreview';
+
+/** "AE" badge that expands to "After Effects" on hover. With `to`, it is also a link (the card's own link sits under it). */
+export function AppBadge({ category, to }: { category: CategoryId; to?: string }) {
+  const cat = categoryById(category);
+  const content = (
+    <>
+      <span className="badge__short" aria-hidden>
+        {cat.short}
+      </span>
+      <span className="badge__full">{cat.label}</span>
+    </>
+  );
+  return to ? (
+    <Link to={to} className="badge badge--app" tabIndex={-1}>
+      {content}
+    </Link>
+  ) : (
+    <span className="badge badge--app">
+      {content}
+    </span>
+  );
+}
 
 export function TierBadge({ product }: { product: Product }) {
   if (product.tier === 'featured') return <span className="badge badge--featured">Featured</span>;
@@ -38,7 +60,7 @@ export function ProductCard({ product }: { product: Product }) {
         <Link to={`/item/${product.slug}`} className="card__hit" aria-label={product.title} />
         <VideoPreview product={product} playing={hover} />
         <div className="card__badges">
-          <span className="badge badge--app">{cat.short}</span>
+          <AppBadge category={product.category} to={`/item/${product.slug}`} />
           <TierBadge product={product} />
         </div>
       </div>
@@ -76,6 +98,7 @@ export function ProductCard({ product }: { product: Product }) {
               </>
             )}
           </div>
+          <small className="price__tax">+ your country's tax</small>
           <BuyNowButton product={product} promo={activePromo} size="sm" />
         </div>
       </div>

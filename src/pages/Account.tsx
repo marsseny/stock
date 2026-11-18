@@ -179,7 +179,7 @@ function Purchases({ session }: { session: Session }) {
     <div className="account">
       <div className="account__head">
         <div>
-          <span className="modal__eyebrow">Framehaus customer</span>
+          <span className="modal__eyebrow">Nuovo Motion customer</span>
           <h1>My Account</h1>
           <p className="muted">
             Signed in as <strong>{session.user.email}</strong>
@@ -534,7 +534,7 @@ export function Account() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    document.title = 'My Account — Framehaus';
+    document.title = 'My Account — Nuovo Motion';
   }, []);
 
   useEffect(() => {

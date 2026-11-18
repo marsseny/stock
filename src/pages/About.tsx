@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 export function About() {
   return (
     <section className="section section--page prose">
-      <h1>About Framehaus</h1>
+      <h1>About Nuovo Motion</h1>
       <p className="muted lead">
         A curated marketplace of templates, plugins and packs for After Effects, Premiere Pro, DaVinci Resolve and more —
         made by independent motion designers.

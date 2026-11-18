@@ -272,9 +272,12 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
             <span className="modal__eyebrow">{eyebrow}</span>
             <h2 id={`${ids}-title`}>{product.title}</h2>
           </div>
-          <div className="modal__price price">
-            {promo && <s>{formatPrice(product.price)}</s>}
-            <strong>{formatPrice(price)}</strong>
+          <div className="modal__price">
+            <div className="price">
+              {promo && <s>{formatPrice(product.price)}</s>}
+              <strong>{formatPrice(price)}</strong>
+            </div>
+            <small className="price__tax">+ your country's tax</small>
           </div>
           <button type="button" className="btn btn--glass btn--icon" onClick={onClose} disabled={!canClose} aria-label="Close checkout">
             <Close />

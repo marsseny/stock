@@ -13,7 +13,7 @@ function Layout() {
   const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo(0, 0);
-    if (!pathname.startsWith('/item/')) document.title = 'Framehaus — Templates for After Effects, Premiere Pro & more';
+    if (!pathname.startsWith('/item/')) document.title = 'Nuovo Motion — Templates for After Effects, Premiere Pro & more';
   }, [pathname]);
 
   return (

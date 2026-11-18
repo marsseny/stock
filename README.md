@@ -1,4 +1,4 @@
-# Framehaus — Premium Video Templates
+# Nuovo Motion — Premium Video Templates
 
 Marketplace for motion-design templates: After Effects / Premiere Pro / DaVinci Resolve projects, plugins, presets, sound FX and big packs.
 
@@ -15,7 +15,7 @@ npm run build        # type-check + production build into dist/
 
 - `src/types.ts` — domain model (`Product`, `Tier` = `basic | featured | pack`, categories).
 - `src/data/` — categories and the mock catalog (`products.ts`, deterministic generator, 84 items). Pages only use the helpers exported there.
-- No cart: every product is bought on its own with **Buy now · $XX** (`src/components/BuyNowButton.tsx`), because the embedded Whop checkout pays for one plan at a time.
+- No cart: every product is bought on its own with **Buy now** (the price and a "+ your country's tax" note sit next to it) (`src/components/BuyNowButton.tsx`), because the embedded Whop checkout pays for one plan at a time.
 - `src/components/CheckoutModal.tsx` — the whole purchase in one modal: `details` (e-mail or Google + promo code, no account needed) → `pay` (embedded Whop form, e-mail locked, `skipRedirect`; skipped for a 100% promo) → `verifying` (POST `/claim-download`, retried while Whop finalises the payment) → `ready` (license key with Copy, Download ZIP, next promo offer, link to My Purchases). An `error` state offers *Try again* / *My Purchases*.
 - **Buyer account first:** if the visitor is not signed in, the checkout modal starts with *Create your account* — **Continue with Google** or e-mail + 6-digit code (`src/components/AuthForm.tsx`, shared with `/account`). After Google returns, the same checkout re-opens automatically (`fh_pending_checkout` in sessionStorage). Purchases are linked to the account e-mail (the Bearer token is sent to `/claim-download`).
 - `src/lib/promo.ts` — progressive promo codes: `NEXT15` (15% off the 2nd product), `VIP20` (20% off the 3rd and later), plus the test code **`TEST100`** (100% off: Whop is skipped, the file is issued by `/api/claim-free`, which checks the code on the server; disable with `FREE_PROMO_DISABLED=true`). An invalid code shows only “… is not a valid promo code.” — existing codes are never hinted. The product page has a promo field that recalculates the price (strike-through + `-15%`/`-20%` badge); **Buy now** copies the code to the clipboard and pre-fills it in the Whop form, and the modal shows a "Promo code copied" banner. The code unlocked after a purchase is saved in `localStorage` (`fh_active_promo`) and auto-applied next time. **The same codes must exist in the Whop dashboard** — Whop applies the actual discount.

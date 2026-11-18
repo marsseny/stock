@@ -4,14 +4,13 @@ import { Catalog } from '../components/Catalog';
 import { ArrowRight, Search } from '../components/Icons';
 import { ProductCard } from '../components/ProductCard';
 import { CATEGORIES } from '../data/categories';
-import { FEATURED, PRODUCTS } from '../data/products';
+import { FEATURED } from '../data/products';
 
 const HOME_FEATURED = 6;
 
 export function Home() {
   const navigate = useNavigate();
   const [q, setQ] = useState('');
-  const packs = PRODUCTS.filter((p) => p.tier === 'pack').length;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -26,8 +25,8 @@ export function Home() {
           Premium Video Templates
         </h1>
         <p className="hero__lead muted">
-          {PRODUCTS.length} hand-picked projects, {packs} big packs and pro tools from independent motion designers. Buy once, use
-          forever.
+          A small, carefully curated collection: every project, pack and tool is hand-picked for quality, not quantity. Made by
+          independent motion designers. Buy once, use forever.
         </p>
 
         <form className="hero__search glass-pill" onSubmit={submit} role="search">

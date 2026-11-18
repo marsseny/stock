@@ -173,7 +173,7 @@ const REAL_PRODUCTS: Product[] = [
     id: 'real-001',
     slug: 'phone-20-pro-mockups',
     title: 'Phone 20 Pro Mockups',
-    author: 'Framehaus Studio',
+    author: 'Nuovo Motion',
     category: 'after-effects',
     tier: 'featured',
     tags: ['3d', 'promo', 'minimal', 'corporate', 'social media'],

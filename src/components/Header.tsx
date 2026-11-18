@@ -3,6 +3,7 @@ import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-
 import { CATEGORIES } from '../data/categories';
 import { countByCategory } from '../data/products';
 import { ArrowRight, Chevron, Close, Menu, Search, User } from './Icons';
+import { Logo } from './Logo';
 
 type NavKey = 'shop' | 'packs' | 'plugins' | 'about' | 'account';
 
@@ -96,9 +97,8 @@ export function Header() {
   return (
     <header className={`header ${scrolled ? 'is-scrolled' : ''}`}>
       <div className="header__inner">
-        <Link to="/" className="logo" aria-label="Framehaus home">
-          <span className="logo__mark" />
-          Framehaus
+        <Link to="/" className="logo" aria-label="Nuovo Motion home">
+          <Logo />
         </Link>
 
         <nav className="nav glass-pill" aria-label="Main">

@@ -182,12 +182,7 @@ export function VideoPreview({ product, playing, sound = true, large, controls }
           {sound && soundButton}
         </div>
       ) : (
-        <>
-          {sound && soundButton}
-          <div className="preview__progress" aria-hidden>
-            <span />
-          </div>
-        </>
+        sound && soundButton
       )}
     </div>
   );

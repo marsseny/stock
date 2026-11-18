@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { BuyNowButton } from '../components/BuyNowButton';
 import { Check, Chevron, Close, Star, Ticket } from '../components/Icons';
 import { ProjectDetails } from '../components/ProjectDetails';
-import { ProductCard, TierBadge } from '../components/ProductCard';
+import { AppBadge, ProductCard, TierBadge } from '../components/ProductCard';
 import { ReviewsPanel } from '../components/Reviews';
 import { VideoPreview } from '../components/VideoPreview';
 import { categoryById } from '../data/categories';
@@ -29,7 +29,7 @@ export function ProductPage() {
   }, [showReviews]);
 
   useEffect(() => {
-    if (product) document.title = `${product.title} — Framehaus`;
+    if (product) document.title = `${product.title} — Nuovo Motion`;
   }, [product]);
 
   if (!product) return <NotFound />;
@@ -87,7 +87,7 @@ export function ProductPage() {
         <div className={`product__side ${showReviews ? 'is-expanded' : ''}`}>
           <aside className="buybox glass-panel">
             <div className="buybox__badges">
-              <span className="badge badge--app">{cat.short}</span>
+              <AppBadge category={product.category} />
               <TierBadge product={product} />
             </div>
             <h1>{product.title}</h1>
@@ -117,6 +117,7 @@ export function ProductPage() {
                 </>
               )}
             </div>
+            <small className="price__tax price__tax--lg">Plus applicable tax (VAT / sales tax) of your country.</small>
 
             {purchasable && (
               <form className={`promo-field ${activePromo ? 'is-applied' : ''} ${promoError ? 'is-invalid' : ''}`} onSubmit={applyPromo}>
