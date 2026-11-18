@@ -20,7 +20,7 @@ import {
   type ClaimDownloadResult,
 } from '../lib/api';
 import { promoForPurchases, saveActivePromo } from '../lib/promo';
-import { fetchMyPurchases, isSupabaseConfigured, supabase, type Purchase } from '../lib/supabase';
+import { fetchMyPurchases, isFreePurchase, loadSupabase, useSupabase, type Purchase } from '../lib/supabase';
 
 const formatDate = (iso: string) =>
   new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -41,10 +41,11 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
   const title = product?.title ?? purchase.product_slug;
 
   const download = async () => {
-    if (!supabase) return;
     setBusy(true);
     setError('');
     try {
+      const supabase = await loadSupabase();
+      if (!supabase) throw new Error('Sign-in is not available right now. Please try again later.');
       // Use a fresh token in case the stored one is about to expire.
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token ?? session.access_token;
@@ -78,7 +79,9 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
             ) : (
               <span className="purchase__title">{title}</span>
             )}
-            <small className="muted">Purchased {formatDate(purchase.created_at)}</small>
+            <small className="muted">
+              {isFreePurchase(purchase) ? 'Free file · added' : 'Purchased'} {formatDate(purchase.created_at)}
+            </small>
           </div>
           <button type="button" className="btn btn--accent btn--sm" onClick={download} disabled={busy}>
             {busy ? <span className="spinner" /> : <Download width={16} height={16} />}
@@ -100,6 +103,44 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
 }
 
 /* ------------------------------------ Signed-in screen ------------------------------------ */
+
+/** "maya.rossi@x.com" → "Maya"; uses the Google name when there is one. */
+function firstName(session: Session): string {
+  const meta = (session.user.user_metadata ?? {}) as { full_name?: string; name?: string };
+  const source = (meta.full_name ?? meta.name ?? session.user.email?.split('@')[0] ?? '').trim();
+  const word = source.split(/[\s._-]+/).map((p) => p.replace(/\d+/g, '')).find(Boolean) ?? '';
+  return word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : '';
+}
+
+function Welcome({ session, paidCount, total }: { session: Session; paidCount: number; total: number }) {
+  const name = firstName(session);
+  return (
+    <div className="welcome glass-panel">
+      <span className="welcome__emoji" aria-hidden>
+        ✨
+      </span>
+      <div>
+        <h2>{name ? `Welcome, ${name}!` : 'Welcome!'}</h2>
+        {paidCount > 0 ? (
+          <p>
+            We’re truly happy that you’re our customer. Thank you for trusting us with your projects — every purchase helps
+            us create more templates. Your files, license keys and reviews are all here.
+          </p>
+        ) : total > 0 ? (
+          <p>
+            We’re so glad you’re here! Your free files are below. Whenever you’re ready for more, our full catalog is waiting —
+            and after your first purchase you’ll unlock a personal discount.
+          </p>
+        ) : (
+          <p>
+            We’re so glad you’re here! Everything you buy with this e-mail will appear on this page with its license key, a
+            download link and a place to leave a review.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function Purchases({ session }: { session: Session }) {
   const [items, setItems] = useState<Purchase[] | null>(null);
@@ -128,7 +169,8 @@ function Purchases({ session }: { session: Session }) {
     try {
       const list = await fetchMyPurchases();
       setItems(list);
-      const promo = promoForPurchases(list.length);
+      // Only paid purchases unlock a loyalty code; free files (100%-off code) do not.
+      const promo = promoForPurchases(list.filter((p) => !isFreePurchase(p)).length);
       if (promo) saveActivePromo(promo.code);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not load your purchases.');
@@ -141,17 +183,19 @@ function Purchases({ session }: { session: Session }) {
   }, [load, session.user.id]);
 
   const signOut = async () => {
+    const supabase = await loadSupabase();
     await supabase?.auth.signOut();
   };
 
-  const promo = items ? promoForPurchases(items.length) : null;
+  const paidCount = items ? items.filter((p) => !isFreePurchase(p)).length : 0;
+  const promo = items ? promoForPurchases(paidCount) : null;
 
   return (
     <div className="account">
       <div className="account__head">
         <div>
-          <span className="modal__eyebrow">My Account</span>
-          <h1>Your files &amp; licenses</h1>
+          <span className="modal__eyebrow">Framehaus customer</span>
+          <h1>My Account</h1>
           <p className="muted">
             Signed in as <strong>{session.user.email}</strong>
           </p>
@@ -160,6 +204,8 @@ function Purchases({ session }: { session: Session }) {
           Log out
         </button>
       </div>
+
+      {items !== null && <Welcome session={session} paidCount={paidCount} total={items.length} />}
 
       {promo && (
         <div className="offer offer--wide" role="note">
@@ -204,6 +250,7 @@ function Purchases({ session }: { session: Session }) {
         </div>
       ) : (
         <div className="purchases">
+          <h2 className="purchases__title">Your purchases</h2>
           {items.map((p) => (
             <PurchaseCard
               key={p.id}
@@ -497,6 +544,7 @@ function FreshProjects() {
 /* ------------------------------------------ Page ------------------------------------------ */
 
 export function Account() {
+  const { supabase, ready: configReady } = useSupabase();
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
 
@@ -505,6 +553,7 @@ export function Account() {
   }, []);
 
   useEffect(() => {
+    if (!configReady) return;
     if (!supabase) {
       setReady(true);
       return;
@@ -523,13 +572,13 @@ export function Account() {
       active = false;
       sub.subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase, configReady]);
 
   return (
     <>
       <section className="section section--page account-page">
         {ready && <PaymentReturn session={session} />}
-        {!isSupabaseConfigured ? (
+        {ready && !supabase ? (
           <div className="notice glass-panel">
             <h1>My Account is not available yet</h1>
             <p className="muted">Buyer accounts are not configured on this storefront. Please check back soon.</p>

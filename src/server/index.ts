@@ -5,6 +5,7 @@ export { claimFree } from './handlers/claimFree';
 export { contact } from './handlers/contact';
 export { reviews } from './handlers/reviews';
 export { getDownloadUrl } from './handlers/getDownloadUrl';
+export { publicConfig } from './handlers/publicConfig';
 export { whopWebhook } from './handlers/whopWebhook';
 export { setServerEnv } from './env';
 export type { Handler } from './http';
@@ -14,6 +15,7 @@ import { claimFree } from './handlers/claimFree';
 import { contact } from './handlers/contact';
 import { reviews } from './handlers/reviews';
 import { getDownloadUrl } from './handlers/getDownloadUrl';
+import { publicConfig } from './handlers/publicConfig';
 import { whopWebhook } from './handlers/whopWebhook';
 import type { Handler } from './http';
 
@@ -25,4 +27,5 @@ export const routes: Record<string, Handler> = {
   'claim-free': claimFree,
   reviews,
   contact,
+  'public-config': publicConfig,
 };

@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { formatPrice } from '../data/products';
 import { ApiError, claimDownload, claimFree, type ClaimDownloadResult } from '../lib/api';
 import { discountedPrice, isFreePromo, lookupPromo, PROMO_SECOND, PROMO_THIRD, saveActivePromo, type PromoInfo } from '../lib/promo';
-import { supabase } from '../lib/supabase';
+import { useSupabase } from '../lib/supabase';
 import type { Product } from '../types';
 import { GoogleLogo, PENDING_CHECKOUT_KEY } from './AuthForm';
 import { CopyButton } from './CopyButton';
@@ -51,6 +51,7 @@ function readLastEmail(): string {
 }
 
 export function CheckoutModal({ product, open, onClose, promo: initialPromo = null }: Props) {
+  const { supabase } = useSupabase();
   const [stage, setStage] = useState<Stage>('details');
   const [session, setSession] = useState<Session | null>(null);
   const [email, setEmail] = useState('');
@@ -101,7 +102,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
       cancelled = true;
       sub.subscription.unsubscribe();
     };
-  }, [open]);
+  }, [open, supabase]);
 
   // Lock page scroll; Escape closes (except while the payment is being confirmed).
   useEffect(() => {
@@ -253,8 +254,11 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
 
   const price = discountedPrice(product.price, promo);
   const freeMode = isFreePromo(promo);
-  const nextPromo = result ? (lookupPromo(result.nextPromoCode) ?? { code: result.nextPromoCode, percent: result.nextDiscountPercent }) : null;
-  const isFirstPurchase = (result?.totalPurchasesCount ?? 0) <= 1;
+  // No code after free files only (the server returns an empty code until the first paid purchase).
+  const nextPromo = result?.nextPromoCode
+    ? (lookupPromo(result.nextPromoCode) ?? { code: result.nextPromoCode, percent: result.nextDiscountPercent })
+    : null;
+  const isFirstPurchase = (nextPromo?.percent ?? 0) < 20;
   const fileName = result?.fileName || `${product.title}.zip`;
   const canClose = stage !== 'verifying';
   const eyebrow = stage === 'ready' ? 'Order complete' : stage === 'details' ? 'Step 1 of 2 · Your e-mail' : stage === 'pay' ? 'Step 2 of 2 · Payment' : 'Secure checkout';

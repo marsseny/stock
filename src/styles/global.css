@@ -1432,6 +1432,24 @@ img, video { display: block; max-width: 100%; }
 .notice { padding: 28px; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .notice p { margin: 0; }
 .purchases { display: flex; flex-direction: column; gap: 14px; }
+.purchases__title { font-size: 20px; margin: 8px 0 0; }
+
+/* Welcome block on My Account */
+.welcome {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 20px 22px;
+  margin-bottom: 18px;
+  border-radius: var(--radius);
+  background:
+    radial-gradient(90% 160% at 100% 0%, rgba(227, 244, 42, 0.12), transparent 60%),
+    rgba(255, 255, 255, 0.04);
+  animation: modal-in 0.45s ease both;
+}
+.welcome__emoji { font-size: 30px; line-height: 1; flex: none; }
+.welcome h2 { margin: 0 0 6px; font-size: clamp(20px, 2.4vw, 26px); }
+.welcome p { margin: 0; color: var(--muted); line-height: 1.55; max-width: 70ch; }
 .purchase { display: grid; grid-template-columns: 220px 1fr; gap: 18px; padding: 14px; align-items: center; }
 .purchase__thumb .preview, .purchase__thumb-ph { border-radius: 12px; overflow: hidden; }
 .purchase__thumb-ph { aspect-ratio: 16 / 9; background: linear-gradient(135deg, #1b2a33, #0b141a); }

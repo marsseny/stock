@@ -16,7 +16,7 @@ import { getEnv } from '../env';
 import { asString, createHandler, HttpError, isEmail, json, normalizeEmail, readJsonBody } from '../http';
 import { nextPromoFor } from '../promo';
 import { fileNameFromKey, getPresignedDownloadUrl } from '../r2';
-import { countPurchasesByEmail, ensurePurchase, findPurchaseBySlugAndEmail } from '../supabaseAdmin';
+import { countPaidPurchasesByEmail, countPurchasesByEmail, ensurePurchase, findPurchaseBySlugAndEmail } from '../supabaseAdmin';
 import type { ClaimDownloadResponse } from './claimDownload';
 
 const DOWNLOAD_TTL_SECONDS = 3600;
@@ -55,6 +55,7 @@ export const claimFree = createHandler(['POST'], async (req) => {
     }));
 
   const totalPurchasesCount = await countPurchasesByEmail(purchase.email);
+  const paidPurchasesCount = await countPaidPurchasesByEmail(purchase.email);
   const downloadUrl = await getPresignedDownloadUrl(purchase.r2_object_key, DOWNLOAD_TTL_SECONDS);
 
   const response: ClaimDownloadResponse = {
@@ -63,7 +64,7 @@ export const claimFree = createHandler(['POST'], async (req) => {
     email: purchase.email,
     fileName: fileNameFromKey(purchase.r2_object_key),
     totalPurchasesCount,
-    ...nextPromoFor(totalPurchasesCount),
+    ...nextPromoFor(paidPurchasesCount),
   };
   return json(response);
 });

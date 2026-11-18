@@ -8,12 +8,15 @@ export interface NextPromo {
 }
 
 /**
- * 1st purchase of an e-mail → 15% off the next one (NEXT15).
+ * Counts PAID purchases only (free files never unlock a code):
+ * 0 paid purchases          → no code (empty string, 0%).
+ * 1st paid purchase         → 15% off the next one (NEXT15).
  * 2nd and later purchases   → 20% off (VIP20).
  * Codes can be renamed with PROMO_SECOND_ITEM / PROMO_THIRD_ITEM (or the VITE_ variants).
  */
-export function nextPromoFor(totalPurchasesCount: number): NextPromo {
-  if (totalPurchasesCount >= 2) {
+export function nextPromoFor(paidPurchasesCount: number): NextPromo {
+  if (paidPurchasesCount <= 0) return { nextPromoCode: '', nextDiscountPercent: 0 };
+  if (paidPurchasesCount >= 2) {
     return {
       nextPromoCode: getEnv('PROMO_THIRD_ITEM') ?? getEnv('VITE_PROMO_THIRD_ITEM') ?? 'VIP20',
       nextDiscountPercent: 20,

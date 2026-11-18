@@ -87,6 +87,20 @@ export async function countPurchasesByEmail(email: string): Promise<number> {
   return count ?? 0;
 }
 
+/**
+ * Paid purchases only: products issued with the 100%-off code (`/api/claim-free`, receipt `free_…`)
+ * are free files and do not unlock loyalty promo codes.
+ */
+export async function countPaidPurchasesByEmail(email: string): Promise<number> {
+  const { count, error } = await getSupabaseAdmin()
+    .from('purchases')
+    .select('id', { count: 'exact', head: true })
+    .eq('email', email.trim().toLowerCase())
+    .not('whop_receipt_id', 'like', 'free_%');
+  if (error) throw new Error(`Supabase: failed to count purchases — ${error.message}`);
+  return count ?? 0;
+}
+
 /** Existing purchase of a product by this e-mail (oldest first), if any. */
 export async function findPurchaseBySlugAndEmail(slug: string, email: string): Promise<PurchaseRow | null> {
   const { data, error } = await getSupabaseAdmin()

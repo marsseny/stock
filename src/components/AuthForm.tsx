@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { initialLinkError, loadSupabase } from '../lib/supabase';
 
 const RESEND_COOLDOWN = 60;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -37,7 +37,7 @@ export function AuthForm({
   const [email, setEmail] = useState('');
   const [sentTo, setSentTo] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(initialLinkError);
   const [cooldown, setCooldown] = useState(0);
 
   useEffect(() => {
@@ -48,7 +48,6 @@ export function AuthForm({
 
   const send = async (e?: FormEvent) => {
     e?.preventDefault();
-    if (!supabase) return;
     const clean = (sentTo || email).trim().toLowerCase();
     if (!EMAIL_RE.test(clean)) {
       setError('Enter a valid e-mail address.');
@@ -56,6 +55,12 @@ export function AuthForm({
     }
     setBusy(true);
     setError('');
+    const supabase = await loadSupabase();
+    if (!supabase) {
+      setBusy(false);
+      setError('Sign-in is not available right now. Please try again later.');
+      return;
+    }
     const { error: err } = await supabase.auth.signInWithOtp({
       email: clean,
       options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/account` },

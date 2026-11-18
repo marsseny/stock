@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { REVIEW_MAX_LENGTH, submitReview, type ApiReview } from '../lib/api';
-import { supabase } from '../lib/supabase';
+import { loadSupabase } from '../lib/supabase';
 import { Check, Star } from './Icons';
 
 interface Props {
@@ -51,10 +51,12 @@ export function RateProject({ productSlug, review, onSaved }: Props) {
 
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    if (!supabase || rating < 1) return;
+    if (rating < 1) return;
     setBusy(true);
     setError('');
     try {
+      const supabase = await loadSupabase();
+      if (!supabase) throw new Error('Sign-in is not available right now. Please try again later.');
       const { data } = await supabase.auth.getSession();
       const token = data.session?.access_token;
       if (!token) throw new Error('Your session has expired. Please sign in again.');

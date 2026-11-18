@@ -14,7 +14,7 @@ import { getEnv } from '../env';
 import { asString, createHandler, HttpError, isEmail, json, normalizeEmail, readJsonBody } from '../http';
 import { nextPromoFor } from '../promo';
 import { fileNameFromKey, getPresignedDownloadUrl } from '../r2';
-import { countPurchasesByEmail, ensurePurchase, reassignPurchaseEmail } from '../supabaseAdmin';
+import { countPaidPurchasesByEmail, countPurchasesByEmail, ensurePurchase, reassignPurchaseEmail } from '../supabaseAdmin';
 import { fetchWhopPayment } from '../whop';
 
 interface ClaimBody {
@@ -120,6 +120,7 @@ export const claimDownload = createHandler(['POST'], async (req) => {
   }
 
   const totalPurchasesCount = await countPurchasesByEmail(purchase.email);
+  const paidPurchasesCount = await countPaidPurchasesByEmail(purchase.email);
   const downloadUrl = await getPresignedDownloadUrl(purchase.r2_object_key, DOWNLOAD_TTL_SECONDS);
 
   const response: ClaimDownloadResponse = {
@@ -128,7 +129,7 @@ export const claimDownload = createHandler(['POST'], async (req) => {
     email: purchase.email,
     fileName: fileNameFromKey(purchase.r2_object_key),
     totalPurchasesCount,
-    ...nextPromoFor(totalPurchasesCount),
+    ...nextPromoFor(paidPurchasesCount),
   };
   return json(response);
 });
