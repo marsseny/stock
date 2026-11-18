@@ -1607,3 +1607,8 @@ a.purchase__title:hover { color: var(--lime); }
 @media (max-width: 860px) {
   .account-help { grid-template-columns: 1fr; }
 }
+
+.welcome__eyebrow { margin: 0 0 8px; font-family: var(--font-ui); font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--lime); }
+.welcome .welcome__slogan { margin: 0 0 10px; font-size: clamp(28px, 4vw, 46px); line-height: 1.05; letter-spacing: -0.03em; }
+.welcome__slogan em { font-family: 'Instrument Serif', Georgia, serif; font-style: italic; font-weight: 400; }
+.rate__edit { align-self: flex-start; }

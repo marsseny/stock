@@ -104,6 +104,11 @@ export function RateProject({ productSlug, review, onSaved }: Props) {
       </div>
 
       {!open && review?.comment && <p className="rate__comment">“{review.comment}”</p>}
+      {!open && review && (
+        <button type="button" className="btn btn--glass btn--sm rate__edit" onClick={() => { setOpen(true); setJustSaved(false); }}>
+          Edit review
+        </button>
+      )}
 
       {open && (
         <form className="rate__form" onSubmit={save}>

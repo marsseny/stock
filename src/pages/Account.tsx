@@ -80,7 +80,7 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
               <span className="purchase__title">{title}</span>
             )}
             <small className="muted">
-              {isFreePurchase(purchase) ? 'Free file · added' : 'Purchased'} {formatDate(purchase.created_at)}
+              {isFreePurchase(purchase) ? 'Purchased' : 'Purchased'} {formatDate(purchase.created_at)}
             </small>
           </div>
           <button type="button" className="btn btn--accent btn--sm" onClick={download} disabled={busy}>
@@ -112,31 +112,16 @@ function firstName(session: Session): string {
   return word ? word[0].toUpperCase() + word.slice(1).toLowerCase() : '';
 }
 
-function Welcome({ session, paidCount, total }: { session: Session; paidCount: number; total: number }) {
+function Welcome({ session }: { session: Session; paidCount: number; total: number }) {
   const name = firstName(session);
   return (
     <div className="welcome glass-panel">
-      <span className="welcome__emoji" aria-hidden>
-        ✨
-      </span>
       <div>
-        <h2>{name ? `Welcome, ${name}!` : 'Welcome!'}</h2>
-        {paidCount > 0 ? (
-          <p>
-            We’re truly happy that you’re our customer. Thank you for trusting us with your projects — every purchase helps
-            us create more templates. Your files, license keys and reviews are all here.
-          </p>
-        ) : total > 0 ? (
-          <p>
-            We’re so glad you’re here! Your free files are below. Whenever you’re ready for more, our full catalog is waiting —
-            and after your first purchase you’ll unlock a personal discount.
-          </p>
-        ) : (
-          <p>
-            We’re so glad you’re here! Everything you buy with this e-mail will appear on this page with its license key, a
-            download link and a place to leave a review.
-          </p>
-        )}
+        <p className="welcome__eyebrow">{name ? `Welcome, ${name}` : 'Welcome'}</p>
+        <h2 className="welcome__slogan">
+          Templates handle the <em>routine</em>, you make the <em>magic</em>.
+        </h2>
+        <p>We’re truly happy you’re with us. Your purchased files, license keys and reviews are all below.</p>
       </div>
     </div>
   );
