@@ -105,7 +105,7 @@ function PurchaseCard({ purchase, session, review, onReviewSaved }: PurchaseCard
 
 /* ------------------------------------ Signed-in screen ------------------------------------ */
 
-/** "maya.rossi@x.com" → "Maya"; uses the Google name when there is one. */
+/** "maya.rossi@x.com" → "Maya"; uses the profile name when there is one. */
 function firstName(session: Session): string {
   const meta = (session.user.user_metadata ?? {}) as { full_name?: string; name?: string };
   const source = (meta.full_name ?? meta.name ?? session.user.email?.split('@')[0] ?? '').trim();
@@ -178,7 +178,7 @@ function Purchases({ session }: { session: Session }) {
     <div className="account">
       <div className="account__head">
         <div>
-          <span className="modal__eyebrow">Nuovo Motion customer</span>
+          <span className="modal__eyebrow">Nuova Motion customer</span>
           <h1>My Account</h1>
           <p className="muted">
             Signed in as <strong>{session.user.email}</strong>
@@ -533,7 +533,7 @@ export function Account() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    document.title = 'My Account — Nuovo Motion';
+    document.title = 'My Account — Nuova Motion';
   }, []);
 
   useEffect(() => {

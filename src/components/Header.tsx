@@ -97,7 +97,7 @@ export function Header() {
   return (
     <header className={`header ${scrolled ? 'is-scrolled' : ''}`}>
       <div className="header__inner">
-        <Link to="/" className="logo" aria-label="Nuovo Motion home">
+        <Link to="/" className="logo" aria-label="Nuova Motion home">
           <Logo />
         </Link>
 

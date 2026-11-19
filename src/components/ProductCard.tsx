@@ -6,7 +6,6 @@ import { discountedPrice, getActivePromo } from '../lib/promo';
 import type { CategoryId, Product } from '../types';
 import { BuyNowButton } from './BuyNowButton';
 import { Layers } from './Icons';
-import { TaxHint } from './TaxHint';
 import { VideoPreview } from './VideoPreview';
 
 /**
@@ -105,8 +104,6 @@ export function ProductCard({ product }: { product: Product }) {
           </Link>
           <div className="card__sub">
             <span>{cat.label}</span>
-            <span className="dot" />
-            <span>by {product.author}</span>
           </div>
           <div className="card__tags">
             {product.tags.slice(0, 4).map((t) => (
@@ -130,7 +127,6 @@ export function ProductCard({ product }: { product: Product }) {
                 <strong>{formatPrice(product.price)}</strong>
               </>
             )}
-            <TaxHint />
           </div>
           <BuyNowButton product={product} promo={activePromo} size="sm" />
         </div>

@@ -20,7 +20,7 @@ export function BecomeAuthor() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    document.title = 'Become an author — Nuovo Motion';
+    document.title = 'Become an author — Nuova Motion';
   }, []);
 
   const submit = async (e: FormEvent) => {
@@ -46,7 +46,7 @@ export function BecomeAuthor() {
     <section className="section section--page prose author-page">
       <h1>Become an author</h1>
       <p className="muted lead">
-        Nuovo Motion is a small, curated collection made by a close-knit team of motion designers.
+        Nuova Motion is a small, curated collection made by a close-knit team of motion designers.
       </p>
 
       <div className="author-page__grid">
@@ -56,7 +56,7 @@ export function BecomeAuthor() {
           </span>
           <h3>Our core team is complete</h3>
           <p className="muted">
-            The core team of designers behind Nuovo Motion has been formed, and we are not taking on new authors at the moment.
+            The core team of designers behind Nuova Motion has been formed, and we are not taking on new authors at the moment.
           </p>
           <p className="muted">
             You can still leave an application. We review every one of them — if we are impressed by your work, we will contact

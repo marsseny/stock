@@ -151,20 +151,22 @@ function Visual({ kind }: { kind: NonNullable<Feature['visual']> }) {
   return null;
 }
 
-/* ---------- What's included: categories + 3 scrollable rows of scene previews ---------- */
+/* ---------- What's included: category tabs (big packs only) + 3-per-row scene previews, 1–8 rows ---------- */
 
-const PER_ROW_VISIBLE = 5;
+/** Scenes visible per row (wider screens). */
+const PER_ROW_VISIBLE = 3;
+/** Up to 8 rows; with more than 24 scenes each row scrolls horizontally. */
+const MAX_ROWS = 8;
 const MAX_THUMBS = 60;
 
 function Included({ groups, hue }: { groups: SceneGroup[]; hue: number }) {
   const [active, setActive] = useState(0);
   const group = groups[Math.min(active, groups.length - 1)];
-  const total = groups.reduce((n, g) => n + g.count, 0);
 
   const thumbs: (string | null)[] = group.images.length
     ? group.images.slice(0, MAX_THUMBS)
     : Array.from({ length: Math.min(group.count, MAX_THUMBS) }, () => null);
-  const rowsCount = Math.max(1, Math.min(3, Math.ceil(thumbs.length / PER_ROW_VISIBLE)));
+  const rowsCount = Math.max(1, Math.min(MAX_ROWS, Math.ceil(thumbs.length / PER_ROW_VISIBLE)));
   const perRow = Math.ceil(thumbs.length / rowsCount);
   const rows = Array.from({ length: rowsCount }, (_, r) => thumbs.slice(r * perRow, (r + 1) * perRow));
 
@@ -172,9 +174,6 @@ function Included({ groups, hue }: { groups: SceneGroup[]; hue: number }) {
     <div className="included">
       <div className="included__head">
         <h2>What’s included</h2>
-        <span className="muted">
-          {total.toLocaleString('en-US')} scenes · {groups.length} {groups.length === 1 ? 'category' : 'categories'}
-        </span>
       </div>
 
       {groups.length > 1 && (
@@ -234,7 +233,6 @@ function SceneRow({ items, offset, hue, label }: { items: (string | null)[]; off
                   <span />
                 </div>
               )}
-              <figcaption>{String(n).padStart(2, '0')}</figcaption>
             </figure>
           );
         })}

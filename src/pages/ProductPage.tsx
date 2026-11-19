@@ -29,7 +29,7 @@ export function ProductPage() {
   }, [showReviews]);
 
   useEffect(() => {
-    if (product) document.title = `${product.title} — Nuovo Motion`;
+    if (product) document.title = `${product.title} — Nuova Motion`;
   }, [product]);
 
   if (!product) return <NotFound />;
@@ -76,7 +76,7 @@ export function ProductPage() {
             <h1>{product.title}</h1>
             <button
               type="button"
-              className={`rating rating--btn ${showReviews ? 'is-open' : ''}`}
+              className={`rating rating--btn ${showReviews ? 'is-open' : ''} ${reviewSummary.count > 0 ? '' : 'rating--empty'}`}
               onClick={() => setShowReviews((v) => !v)}
               aria-expanded={showReviews}
               aria-controls="reviews"

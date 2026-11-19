@@ -54,11 +54,6 @@ export const authProxy: Handler = async (req) => {
     const base = getSupabaseUrl();
     if (!base) throw new MissingEnvError('SUPABASE_URL');
 
-    // OAuth (Google button): the browser navigates here — send it straight to Supabase, no key needed.
-    if (endpoint === 'authorize' && method === 'GET') {
-      return Response.redirect(`${base}/auth/v1/authorize${url.search}`, 302);
-    }
-
     const rule = RULES[endpoint];
     if (!rule || !rule.methods.includes(method)) {
       return json({ error: 'not_found', message: 'Unknown auth route.' }, 404, CORS);

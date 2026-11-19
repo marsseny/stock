@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="footer">
       <div className="footer__inner">
         <div>
-          <Link to="/" className="logo" aria-label="Nuovo Motion home">
+          <Link to="/" className="logo" aria-label="Nuova Motion home">
             <Logo />
           </Link>
           <p className="muted">Premium templates, plugins and packs for video creators.</p>
@@ -33,7 +33,7 @@ export function Footer() {
           <Link to="/become-author">Become an author</Link>
         </div>
       </div>
-      <div className="footer__bottom muted">© {new Date().getFullYear()} Nuovo Motion · nuovomotion.com. All rights reserved.</div>
+      <div className="footer__bottom muted">© {new Date().getFullYear()} Nuova Motion · nuovamotion.com. All rights reserved.</div>
     </footer>
   );
 }

@@ -36,7 +36,7 @@ export interface ClaimDownloadResponse {
 
 const DOWNLOAD_TTL_SECONDS = 3600;
 const REASSIGN_WINDOW_MS = 60 * 60 * 1000;
-const TEST_FALLBACK_EMAIL = 'test-buyer@nuovomotion.local';
+const TEST_FALLBACK_EMAIL = 'test-buyer@nuovamotion.local';
 const RECEIPT_RE = /^[A-Za-z0-9_-]{3,128}$/;
 
 /** Unverified (no WHOP_API_KEY) claims are allowed only locally or when explicitly enabled. */

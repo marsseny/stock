@@ -1,6 +1,6 @@
 import type { SVGProps } from 'react';
 
-/** Nuovo Motion mark: a lime tile with a forward-leaning "N" (motion). Same drawing as public/favicon.svg. */
+/** Nuova Motion mark: a lime tile with a forward-leaning "N" (motion). Same drawing as public/favicon.svg. */
 export function LogoMark(props: SVGProps<SVGSVGElement>) {
   return (
     <svg viewBox="0 0 32 32" width={28} height={28} aria-hidden focusable="false" {...props}>
@@ -10,13 +10,13 @@ export function LogoMark(props: SVGProps<SVGSVGElement>) {
   );
 }
 
-/** Logo used in the header and footer: mark + "Nuovo Motion" wordmark. */
+/** Logo used in the header and footer: mark + "nuovamotion.com" wordmark (the brand name is "Nuova Motion"). */
 export function Logo() {
   return (
     <>
       <LogoMark className="logo__mark" />
       <span className="logo__word">
-        Nuovo <span>Motion</span>
+        nuovamotion<span>.com</span>
       </span>
     </>
   );

@@ -44,7 +44,7 @@ export const isFreePromo = (promo: PromoInfo | null | undefined): boolean => Boo
 /**
  * Applied promo memory. A code is NEVER filled in automatically from the buyer's account or purchases —
  * the buyer types it. Once applied, it is remembered for 15 minutes (renewed on every use) so it survives
- * page changes and the Google sign-in redirect, then it is forgotten. After a completed order it is cleared.
+ * page changes and the e-mail sign-in, then it is forgotten. After a completed order it is cleared.
  */
 export const APPLIED_PROMO_KEY = 'fh_promo_applied';
 /** Older builds saved the loyalty code here permanently and pre-filled it — removed on load. */

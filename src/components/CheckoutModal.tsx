@@ -3,14 +3,12 @@ import { loadWhop } from '@whop/elements';
 import { Checkout, CheckoutElement, WhopElements } from '@whop/elements-react';
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { formatPrice } from '../data/products';
 import { ApiError, claimDownload, claimFree, type ClaimDownloadResult } from '../lib/api';
-import { savePendingCheckout } from '../lib/pendingCheckout';
 import { clearActivePromo, discountedPrice, isFreePromo, lookupPromo, PROMO_SECOND, PROMO_THIRD, type PromoInfo } from '../lib/promo';
 import { useSupabase } from '../lib/supabase';
 import type { Product } from '../types';
-import { GoogleLogo } from './AuthForm';
 import { CopyButton } from './CopyButton';
 import { Check, Close, Download, Gift } from './Icons';
 import { PromoCodeField } from './PromoCodeField';
@@ -18,7 +16,7 @@ import { TaxHint } from './TaxHint';
 
 /**
  * One-window purchase:
- *   details   — e-mail (or Google) + promo code; no account needed
+ *   details   — e-mail (typed by the buyer) + promo code; no account needed
  *   pay       — embedded Whop checkout, e-mail locked to the one from step 1
  *   verifying — /claim-download (paid) or /claim-free (100% promo)
  *   ready     — license key + presigned R2 ZIP link
@@ -60,13 +58,11 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [promo, setPromo] = useState<PromoInfo | null>(null);
-  const [googleBusy, setGoogleBusy] = useState(false);
   const [result, setResult] = useState<ClaimDownloadResult | null>(null);
   const [error, setError] = useState('');
   const receiptRef = useRef<{ planId: string; receiptId: string } | null>(null);
   const aliveRef = useRef(true);
   const ids = useId();
-  const { pathname } = useLocation();
 
   useEffect(() => {
     aliveRef.current = true;
@@ -87,7 +83,7 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
     receiptRef.current = null;
   }, [open, product.slug, initialPromo]);
 
-  // Signed-in buyers (Google / e-mail code) get their account e-mail; signing in is optional.
+  // Buyers signed in to My Account (e-mail link) get their account e-mail; signing in is optional.
   useEffect(() => {
     if (!open || !supabase) return;
     let cancelled = false;
@@ -168,21 +164,6 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
     }
     if (promo && isFreePromo(promo)) void claimFreeNow(promo.code, clean);
     else setStage('pay');
-  };
-
-  const google = async () => {
-    if (!supabase) return;
-    setGoogleBusy(true);
-    // Come back to this exact page with this checkout open (see lib/pendingCheckout.ts).
-    savePendingCheckout({ slug: product.slug, path: pathname, promo: promo?.code ?? '' });
-    const { error: err } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}${pathname}` },
-    });
-    if (err) {
-      setGoogleBusy(false);
-      setEmailError(err.message);
-    }
   };
 
   const useAnotherEmail = async () => {
@@ -296,16 +277,6 @@ export function CheckoutModal({ product, open, onClose, promo: initialPromo = nu
                   <p id={`${ids}-email-err`} className="form-error" role="alert">
                     {emailError}
                   </p>
-                )}
-                {supabase && (
-                  <>
-                    <div className="auth__or" aria-hidden>
-                      <span>or</span>
-                    </div>
-                    <button type="button" className="btn btn--google btn--block" onClick={() => void google()} disabled={googleBusy}>
-                      <GoogleLogo /> Continue with Google
-                    </button>
-                  </>
                 )}
               </>
             )}

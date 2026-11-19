@@ -815,6 +815,8 @@ a.badge--app { cursor: pointer; }
 .buybox__badges { display: flex; gap: 6px; }
 .rating { display: flex; align-items: center; gap: 6px; font-size: 14px; }
 .rating svg { color: var(--lime); }
+/* No reviews yet: a neutral, half-transparent white star instead of the lime one. */
+.rating--empty svg:not(.rating__chev) { color: rgba(255, 255, 255, 0.45); }
 .rating--btn {
   align-self: flex-start;
   padding: 4px 10px 4px 8px;
@@ -1155,7 +1157,7 @@ a.badge--app { cursor: pointer; }
 }
 .scene-row__track::-webkit-scrollbar { display: none; }
 .scene {
-  flex: 0 0 calc((100% - 4 * var(--gap)) / 5);
+  flex: 0 0 calc((100% - 2 * var(--gap)) / 3);
   position: relative;
   margin: 0;
   aspect-ratio: 16 / 9;
@@ -1184,15 +1186,6 @@ a.badge--app { cursor: pointer; }
   border-radius: 3px;
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 14px 0 -2px rgba(255, 255, 255, 0.35);
-}
-.scene figcaption {
-  position: absolute;
-  right: 7px;
-  bottom: 6px;
-  font-family: var(--font-ui);
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
 }
 .scene-row__nav {
   position: absolute;
@@ -1224,14 +1217,12 @@ a.badge--app { cursor: pointer; }
   .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tile__version { font-size: 52px; }
   .tile__stat { font-size: 64px; }
-  .scene { flex-basis: calc((100% - 2 * var(--gap)) / 3); }
 }
 @container (max-width: 440px) {
   .bento { grid-template-columns: 1fr; }
   .tile--lg, .tile--md, .tile--stat, .tile--sm { grid-column: auto; grid-row: auto; }
   .tile--md, .tile--lg { min-height: 180px; }
   .tile--stat { min-height: 220px; }
-  .scene { flex-basis: calc((100% - var(--gap)) / 2); }
   .scene-row__nav { display: none; }
 }
 
@@ -1526,27 +1517,6 @@ a.purchase__title:hover { color: var(--lime); }
   .ph *, .backdrop__shape, .tile, .viz *, .modal__scrim, .modal__panel, .delivery__check, .offer, .promo-notice { animation: none !important; }
 }
 
-/* ---------- Account step in checkout, Google sign-in ---------- */
-.btn--google {
-  background: #fff;
-  color: #1f1f1f;
-  border: 1px solid rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-.btn--google:hover { filter: brightness(0.94); }
-.btn--google:disabled { opacity: 0.6; }
-.auth__or {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 4px 0 -4px;
-  font-size: 12px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-.auth__or::before,
-.auth__or::after { content: ''; flex: 1; height: 1px; background: var(--line); }
 .auth--modal { width: min(420px, 100%); margin: 8px auto 4px; padding: 0; }
 .auth--modal h3 { margin: 0; font-size: 22px; line-height: 1.2; }
 
@@ -1598,7 +1568,7 @@ a.purchase__title:hover { color: var(--lime); }
 .rate__actions small { margin-right: auto; }
 
 
-/* One-window checkout: e-mail / Google + promo */
+/* One-window checkout: e-mail + promo */
 .checkout-details { width: min(420px, 100%); margin: 0 auto; }
 .checkout-details .promo-field { margin-top: 2px; }
 .checkout-details__account {
