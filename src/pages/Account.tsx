@@ -502,7 +502,7 @@ function AccountHelp({ session }: { session: Session | null }) {
 }
 
 /** A few of the newest projects from the catalog (same cards as on the home page). */
-const FRESH = [...PRODUCTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 4);
+const FRESH = [...PRODUCTS].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 3);
 
 function FreshProjects() {
   return (

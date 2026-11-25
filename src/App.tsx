@@ -22,9 +22,10 @@ function Layout() {
   return (
     <>
       <div className="backdrop" aria-hidden>
-        <div className="backdrop__shape backdrop__shape--ring" />
-        <div className="backdrop__shape backdrop__shape--loop" />
-        <div className="backdrop__shape backdrop__shape--orb" />
+        <div className="backdrop__art" />
+        <div className="backdrop__shape backdrop__shape--haze" />
+        <div className="backdrop__shape backdrop__shape--glow" />
+        <div className="backdrop__grain" />
         <div className="backdrop__vignette" />
       </div>
       <Header />

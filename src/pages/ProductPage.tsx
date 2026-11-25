@@ -137,7 +137,7 @@ export function ProductPage() {
           <h2>You may also like</h2>
         </div>
         <div className="grid">
-          {related(product).map((p) => (
+          {related(product, 3).map((p) => (
             <ProductCard key={p.id} product={p} />
           ))}
         </div>
