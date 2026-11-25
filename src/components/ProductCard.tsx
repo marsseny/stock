@@ -1,8 +1,7 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties, type FocusEvent, type RefObject } from 'react';
 import { Link } from 'react-router-dom';
 import { categoryById } from '../data/categories';
-import { formatPrice } from '../data/products';
-import { discountedPrice, getActivePromo } from '../lib/promo';
+import { getActivePromo } from '../lib/promo';
 import type { CategoryId, Product } from '../types';
 import { BuyNowButton } from './BuyNowButton';
 import { Layers } from './Icons';
@@ -73,8 +72,9 @@ export function TierBadge({ product }: { product: Product }) {
 }
 
 /**
- * Catalogue card: only the 16:9 preview is visible. Title, price and "Buy now" fade in over the preview
- * on hover / keyboard focus (always shown on touch screens, which have no hover).
+ * Catalogue card: only the 16:9 preview is visible. On hover / keyboard focus (always on touch screens) the
+ * overlay fades in: the app badge ("Ae" → "After Effects") top-left, a thin title bottom-left and the price
+ * pill bottom-right, which widens to "price · Buy now" when hovered.
  * `large` — slightly bigger card used for the top projects in the first screen of the home page.
  */
 export function ProductCard({ product, large = false }: { product: Product; large?: boolean }) {
@@ -97,29 +97,14 @@ export function ProductCard({ product, large = false }: { product: Product; larg
 
         <div className="card__overlay">
           <div className="card__badges">
+            <AppBadge category={product.category} to={`/item/${product.slug}`} />
             <TierBadge product={product} />
           </div>
           <div className="card__bar">
-            <div className="card__info">
-              <Link to={`/item/${product.slug}`} className="card__title" tabIndex={-1}>
-                {product.title}
-              </Link>
-              <div className="price">
-                {activePromo ? (
-                  <>
-                    <span className="promo-badge">-{activePromo.percent}%</span>
-                    <s>{formatPrice(product.price)}</s>
-                    <strong>{formatPrice(discountedPrice(product.price, activePromo))}</strong>
-                  </>
-                ) : (
-                  <>
-                    {product.oldPrice && <s>{formatPrice(product.oldPrice)}</s>}
-                    <strong>{formatPrice(product.price)}</strong>
-                  </>
-                )}
-              </div>
-            </div>
-            <BuyNowButton product={product} promo={activePromo} size="sm" />
+            <Link to={`/item/${product.slug}`} className="card__title" tabIndex={-1}>
+              {product.title}
+            </Link>
+            <BuyNowButton product={product} promo={activePromo} variant="price" />
           </div>
         </div>
       </div>

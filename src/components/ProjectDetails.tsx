@@ -1,30 +1,44 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { getDetails } from '../data/details';
 import type { Feature, Product, SceneGroup } from '../types';
 import { ChevronLeft, ChevronRight, FEATURE_ICONS } from './Icons';
 
 /**
- * Detailed project description on the product page: a bento grid of feature tiles
- * (big tiles with icons for key features, small text pills for minor ones), a carousel
- * of included scenes grouped by category, and small tags.
+ * Detailed project description on the product page, in light matte glass:
+ * an intro card, numbered feature cards ("01 Feature" + tag, a themed icon or a small animation in a
+ * soft frame, a two-weight title and the text) and compact perk cards for minor features, then the
+ * screens from the project grouped by category, and small tags.
  * Content comes from `getDetails` — editable per project in `src/data/details/<slug>.json`.
  */
 export function ProjectDetails({ product }: { product: Product }) {
   const d = getDetails(product);
   const kind = product.tier === 'pack' ? 'pack' : 'project';
+  const cards = d.features.filter((f) => f.size !== 'sm');
+  const perks = d.features.filter((f) => f.size === 'sm');
 
   return (
     <section className="details" aria-label={`About this ${kind}`}>
-      <div className={`bento ${d.features.length ? '' : 'bento--solo'}`}>
-        <article className="tile tile--lg tile--summary">
-          <span className="tile__eyebrow">About this {kind}</span>
-          <p>{d.summary}</p>
-        </article>
-        {d.features.map((f, i) => (
-          <FeatureTile key={f.key} f={f} index={i} />
-        ))}
-      </div>
+      <article className="feat-intro">
+        <span className="feat-intro__eyebrow">About this {kind}</span>
+        <p>{d.summary}</p>
+      </article>
+
+      {cards.length > 0 && (
+        <div className="feat-grid">
+          {cards.map((f, i) => (
+            <FeatureCard key={f.key} f={f} n={i + 1} />
+          ))}
+        </div>
+      )}
+
+      {perks.length > 0 && (
+        <div className="feat-perks">
+          {perks.map((f, i) => (
+            <Perk key={f.key} f={f} index={cards.length + i} />
+          ))}
+        </div>
+      )}
 
       {d.included.length > 0 && <Included groups={d.included} hue={product.preview.hueA} />}
 
@@ -42,61 +56,118 @@ export function ProjectDetails({ product }: { product: Product }) {
   );
 }
 
-function FeatureTile({ f, index }: { f: Feature; index: number }) {
-  const Icon = f.icon ? FEATURE_ICONS[f.icon] : undefined;
-  const cls = [
-    'tile',
-    `tile--${f.visual === 'stat' ? 'stat' : f.size}`,
-    f.tone && `tone--${f.tone}`,
-    f.visual && `tile--${f.visual}`,
-  ]
-    .filter(Boolean)
-    .join(' ');
-  const style = { '--i': index } as CSSProperties;
+/** Picks a themed icon for features without one (e.g. custom `extra` features from the JSON file). */
+const ICON_GUESSES: [RegExp, string][] = [
+  [/phone|mockup|device|screen/, 'phone'],
+  [/\b3d\b|cube|render/, 'cube'],
+  [/colou?r|grad(e|ing)|\blut/, 'palette'],
+  [/sound|music|audio|sfx/, 'music'],
+  [/font|text|title|typo/, 'font'],
+  [/fast|quick|speed|one[- ]click|instant/, 'bolt'],
+  [/4k|resolution|\bhd\b|display/, 'monitor'],
+  [/transition|layer|scene|pack/, 'layers'],
+];
+function iconFor(f: Feature) {
+  if (f.icon && FEATURE_ICONS[f.icon]) return FEATURE_ICONS[f.icon];
+  const hay = `${f.title} ${f.text ?? ''}`.toLowerCase();
+  const hit = ICON_GUESSES.find(([re]) => re.test(hay));
+  return FEATURE_ICONS[hit ? hit[1] : 'sparkle'];
+}
 
-  if (f.visual === 'stat') {
+/** First word strong, the rest in a lighter, softer weight (like "Smart Transcription"). */
+function TwoWeight({ text, strong }: { text: string; strong?: string }) {
+  if (strong)
     return (
-      <article className={cls} style={style}>
-        <Ruler />
-        <strong className="tile__stat">{f.value}</strong>
-        <span className="tile__label">{f.title}</span>
-        {f.text && <p>{f.text}</p>}
-      </article>
+      <>
+        <b>{strong}</b> <span>{text}</span>
+      </>
     );
-  }
+  const t = text.charAt(0).toUpperCase() + text.slice(1);
+  const i = t.indexOf(' ');
+  if (i < 0) return <b>{t}</b>;
+  return (
+    <>
+      <b>{t.slice(0, i)}</b> <span>{t.slice(i + 1)}</span>
+    </>
+  );
+}
 
-  if (f.size === 'sm') {
-    return (
-      <article className={cls} style={style} title={f.text ? `${f.title} — ${f.text}` : f.title}>
-        {Icon && <Icon width={16} height={16} className="tile__mini-icon" />}
-        <div>
-          <h4>{f.title}</h4>
-          {f.text && <small>{f.text}</small>}
-        </div>
-      </article>
+function FeatureCard({ f, n }: { f: Feature; n: number }) {
+  const Icon = iconFor(f);
+  const tag = f.tag ?? (f.key.startsWith('extra-') ? 'Highlight' : undefined);
+  const cls = ['fcard', `tone--${f.tone ?? 'steel'}`, f.visual && `fcard--${f.visual}`].filter(Boolean).join(' ');
+
+  let art: ReactNode;
+  if (f.visual === 'stat') {
+    art = (
+      <div className="fvis fvis--stat">
+        <Ruler />
+        <strong>{f.value}</strong>
+      </div>
+    );
+  } else if (f.visual === 'app') {
+    art = (
+      <div className="fvis fvis--app">
+        <Icon width={38} height={38} />
+        {f.value && <span className="fvis__version">{f.value}</span>}
+      </div>
+    );
+  } else if (f.visual) {
+    art = (
+      <div className="fvis fvis--viz">
+        <span className="fvis__chip">
+          <Icon width={16} height={16} />
+        </span>
+        <Visual kind={f.visual} />
+      </div>
+    );
+  } else {
+    art = (
+      <div className="fvis fvis--icon">
+        <Icon width={40} height={40} />
+      </div>
     );
   }
 
   return (
-    <article className={cls} style={style}>
-      <div className="tile__top">
-        {Icon && (
-          <span className="tile__icon">
-            <Icon width={f.visual === 'app' ? 30 : 22} height={f.visual === 'app' ? 30 : 22} />
-          </span>
-        )}
-        {f.visual === 'app' && f.value && <span className="tile__version">{f.value}</span>}
-      </div>
-      {f.visual && f.visual !== 'app' && <Visual kind={f.visual} />}
-      <div className="tile__body">
-        <h3>{f.visual === 'app' ? `Works with ${f.title}` : f.title}</h3>
+    <article className={cls} style={{ '--i': n } as CSSProperties}>
+      <header className="fcard__head">
+        <span className="fcard__num">
+          {String(n).padStart(2, '0')}
+          <sup>Feature</sup>
+        </span>
+        {tag && <span className="fcard__tag">{tag}</span>}
+      </header>
+      <div className="fcard__art">{art}</div>
+      <div className="fcard__body">
+        <h3>
+          {f.visual === 'app' ? <TwoWeight strong={f.title} text="compatible" /> : <TwoWeight text={f.title} />}
+        </h3>
         {f.text && <p>{f.text}</p>}
       </div>
     </article>
   );
 }
 
-/** Dial ticks at the top of the stat tile. */
+/** Minor feature: compact light card with an icon, a two-weight title and the full text (never truncated). */
+function Perk({ f, index }: { f: Feature; index: number }) {
+  const Icon = iconFor(f);
+  return (
+    <article className="perk" style={{ '--i': index } as CSSProperties}>
+      <span className="perk__icon">
+        <Icon width={20} height={20} />
+      </span>
+      <div>
+        <h4>
+          <TwoWeight text={f.title} />
+        </h4>
+        {f.text && <small>{f.text}</small>}
+      </div>
+    </article>
+  );
+}
+
+/** Dial ticks above the big number of the stat card. */
 function Ruler() {
   return (
     <div className="ruler" aria-hidden>
@@ -107,7 +178,7 @@ function Ruler() {
   );
 }
 
-/** Small animated illustrations inside tiles (CSS transforms only). */
+/** Small animated illustrations inside feature cards (CSS transforms only). */
 function Visual({ kind }: { kind: NonNullable<Feature['visual']> }) {
   if (kind === 'timeline')
     return (
@@ -151,7 +222,7 @@ function Visual({ kind }: { kind: NonNullable<Feature['visual']> }) {
   return null;
 }
 
-/* ---------- What's included: category tabs (big packs only) + 3-per-row scene previews, 1–8 rows ---------- */
+/* ---------- Screens from the project: category tabs (big packs only) + 3-per-row scene previews, 1–8 rows ---------- */
 
 /** Scenes visible per row (wider screens). */
 const PER_ROW_VISIBLE = 3;
@@ -173,7 +244,7 @@ function Included({ groups, hue }: { groups: SceneGroup[]; hue: number }) {
   return (
     <div className="included">
       <div className="included__head">
-        <h2>What’s included</h2>
+        <h2>Screens from the project</h2>
       </div>
 
       {groups.length > 1 && (

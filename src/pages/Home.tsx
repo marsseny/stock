@@ -6,7 +6,7 @@ import { ProductCard } from '../components/ProductCard';
 import { CATEGORIES } from '../data/categories';
 import { ALL_TAGS, FEATURED } from '../data/products';
 
-/** Top projects shown large in the left half of the first screen. */
+/** Top projects shown large in the right half of the first screen (the search panel is on the left). */
 const HERO_TOP = 2;
 const HERO_TAGS = 8;
 
@@ -25,12 +25,6 @@ export function Home() {
   return (
     <>
       <section className="hero-split">
-        <div className="hero-split__top" aria-label="Top projects">
-          {TOP.map((p) => (
-            <ProductCard key={p.id} product={p} large />
-          ))}
-        </div>
-
         <div className="hero-split__panel">
           <picture className="hero-split__art" aria-hidden>
             <source media="(max-width: 900px)" srcSet="/media/art/hero-dunes-900.webp" />
@@ -38,7 +32,9 @@ export function Home() {
           </picture>
           <div className="hero-split__content">
             <p className="eyebrow">After Effects · Premiere Pro · Plugins · Packs</p>
-            <h1>Premium Video Templates</h1>
+            <h1 className="hero-title">
+              Premium <em>Video Templates</em>
+            </h1>
             <p className="hero__lead">Hand-picked by independent motion designers. Buy once, use forever.</p>
 
             <form className="hero__search" onSubmit={submit} role="search">
@@ -64,6 +60,12 @@ export function Home() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="hero-split__top" aria-label="Top projects">
+          {TOP.map((p) => (
+            <ProductCard key={p.id} product={p} large />
+          ))}
         </div>
       </section>
 

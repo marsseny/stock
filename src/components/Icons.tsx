@@ -135,6 +135,16 @@ export const Globe = (p: P) => (
   <svg {...base} {...p}><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.5 2.6 3.7 5.6 3.7 9s-1.2 6.4-3.7 9c-2.5-2.6-3.7-5.6-3.7-9S9.5 5.6 12 3Z" /></svg>
 );
 
+export const Phone = (p: P) => (
+  <svg {...base} {...p}><rect x="6.5" y="2.5" width="11" height="19" rx="2.8" /><path d="M10.5 5.5h3" /><path d="M11 18.5h2" /></svg>
+);
+export const Cube = (p: P) => (
+  <svg {...base} {...p}><path d="M12 2.8 20 7.3v9.4l-8 4.5-8-4.5V7.3l8-4.5Z" /><path d="M4 7.3 12 12l8-4.7M12 12v9.2" /></svg>
+);
+export const Monitor = (p: P) => (
+  <svg {...base} {...p}><rect x="2.5" y="4" width="19" height="12.5" rx="2.2" /><path d="M8.5 20.5h7M12 16.5v4" /></svg>
+);
+
 /** Icons available to features by name (also for `icon` in `src/data/details/*.json`). */
 export const FEATURE_ICONS: Record<string, (p: P) => JSX.Element> = {
   'after-effects': AfterEffects,
@@ -159,4 +169,7 @@ export const FEATURE_ICONS: Record<string, (p: P) => JSX.Element> = {
   layers: Layers,
   check: Check,
   star: Star,
+  phone: Phone,
+  cube: Cube,
+  monitor: Monitor,
 };

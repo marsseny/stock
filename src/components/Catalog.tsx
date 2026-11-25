@@ -131,22 +131,19 @@ export function Catalog({ hideIds, showTags = true, anchorId = 'catalog' }: Prop
         </div>
         )}
 
-        <div className="toolbar__summary">
-          <span className="muted">
-            {results.length} {results.length === 1 ? 'result' : 'results'}
+        {/* No result counts anywhere (the catalogue is curated) — only the search query and "Clear filters". */}
+        {hasFilters && (
+          <div className="toolbar__summary">
             {q && (
-              <>
-                {' '}
-                for “<b>{q}</b>”
-              </>
+              <span className="muted">
+                Results for “<b>{q}</b>”
+              </span>
             )}
-          </span>
-          {hasFilters && (
             <button className="link-btn" onClick={() => setParams(new URLSearchParams(), { replace: true, preventScrollReset: true })}>
               <Close width={14} height={14} /> Clear filters
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {results.length === 0 ? (

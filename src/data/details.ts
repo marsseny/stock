@@ -11,7 +11,7 @@ import type { Feature, FeatureSize, FeatureTone, Product, ProjectDetails, SceneG
 
 /* ---------- Shape of src/data/details/<slug>.json ---------- */
 
-type FeatureOverride = Partial<Pick<Feature, 'title' | 'text' | 'icon' | 'size' | 'tone' | 'value'>>;
+type FeatureOverride = Partial<Pick<Feature, 'title' | 'text' | 'icon' | 'size' | 'tone' | 'value' | 'tag'>>;
 /** `true` — show with default text, `false` — hide, string — value (e.g. "750+"), object — custom text. */
 type FeatureSetting = boolean | string | FeatureOverride;
 
@@ -56,27 +56,27 @@ const APP_NAME: Record<App, string> = { 'after-effects': 'After Effects', 'premi
 function featuredDefaults(app: App, elements: string): Record<FeaturedKey, Omit<Feature, 'key'>> {
   return {
     motionbro: {
-      size: 'lg', tone: 'ember', icon: 'motionbro',
+      size: 'lg', tone: 'ember', icon: 'motionbro', tag: 'MotionBro',
       title: 'Works with MotionBro',
       text: 'Every scene is packed for MotionBro — browse, preview and drop it into your project in one click.',
     },
     autoResize: {
-      size: 'md', tone: 'ice', icon: 'resize', visual: 'resize',
+      size: 'md', tone: 'ice', icon: 'resize', visual: 'resize', tag: 'Any format',
       title: 'Auto-resize',
       text: `Scenes adapt to the size of your ${app === 'premiere-pro' ? 'sequence' : 'composition'} — 16:9, 9:16, 1:1 or 4K.`,
     },
     elements: {
-      size: 'md', tone: 'ember', visual: 'stat', value: elements,
+      size: 'md', tone: 'ember', visual: 'stat', value: elements, tag: 'Content',
       title: 'ready-made elements',
     },
     durationControl: {
-      size: 'lg', tone: 'lime', icon: 'timeline', visual: 'timeline',
+      size: 'lg', tone: 'lime', icon: 'timeline', visual: 'timeline', tag: 'Timing',
       title: 'Duration control',
       text: 'Drag the end of the layer on the timeline — the animation re-times itself automatically.',
     },
-    freeUpdates: { size: 'sm', icon: 'refresh', title: 'Free updates', text: 'New scenes at no extra cost' },
-    lifetimeLicense: { size: 'sm', icon: 'infinity', title: 'Lifetime license', text: 'Buy once, use forever' },
-    support: { size: 'sm', icon: 'support', title: 'Author support', text: 'Help with any question' },
+    freeUpdates: { size: 'sm', icon: 'refresh', tag: 'Updates', title: 'Free updates', text: 'New scenes at no extra cost' },
+    lifetimeLicense: { size: 'sm', icon: 'infinity', tag: 'License', title: 'Lifetime license', text: 'Buy once, use forever' },
+    support: { size: 'sm', icon: 'support', tag: 'Support', title: 'Author support', text: 'Help with any question' },
   };
 }
 
@@ -84,28 +84,28 @@ function standardDefaults(app: App): Record<StandardKey, Omit<Feature, 'key'>> {
   const name = APP_NAME[app];
   return {
     app: {
-      size: 'lg', tone: app === 'premiere-pro' ? 'orchid' : 'ice', icon: app, visual: 'app', value: '2024+',
+      size: 'lg', tone: app === 'premiere-pro' ? 'orchid' : 'ice', icon: app, visual: 'app', value: '2024+', tag: 'Compatibility',
       title: name,
       text: `Built and tested in ${name} 2024 and newer versions.`,
     },
     controlsPanel: {
-      size: 'md', tone: 'steel', icon: 'sliders', visual: 'sliders',
+      size: 'md', tone: 'steel', icon: 'sliders', visual: 'sliders', tag: 'Customization',
       title: 'Controls panel',
       text: 'Main settings are gathered in one place for quick customization.',
     },
     autoTextResize: {
-      size: 'md', tone: 'ice', icon: 'textbox', visual: 'textbox',
+      size: 'md', tone: 'ice', icon: 'textbox', visual: 'textbox', tag: 'Typography',
       title: 'Auto text-boxes',
       text: 'Change the text — the frame stretches to fit it. Driven by scripts.',
     },
     videoTutorial: {
-      size: 'md', tone: 'ember', icon: 'play',
+      size: 'md', tone: 'ember', icon: 'play', tag: 'Tutorial',
       title: 'Video tutorial included',
       text: 'A walkthrough from opening the project to the final render.',
     },
-    freeFonts: { size: 'sm', icon: 'font', title: 'Free fonts', text: 'Download links inside the project' },
-    expressions: { size: 'sm', icon: 'code', title: 'Universal expressions', text: 'No errors in any language version' },
-    structure: { size: 'sm', icon: 'feather', title: 'Light & well organized', text: 'Lightweight effects, no heavy files' },
+    freeFonts: { size: 'sm', icon: 'font', tag: 'Fonts', title: 'Free fonts', text: 'Download links inside the project' },
+    expressions: { size: 'sm', icon: 'code', tag: 'Expressions', title: 'Universal expressions', text: 'No errors in any language version' },
+    structure: { size: 'sm', icon: 'feather', tag: 'Performance', title: 'Light & well organized', text: 'Lightweight effects, no heavy files' },
   };
 }
 

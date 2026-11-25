@@ -1,75 +1,36 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, NavLink, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { CATEGORIES } from '../data/categories';
-import { countByCategory } from '../data/products';
-import { ArrowRight, Chevron, Close, Menu, Search, User } from './Icons';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { ArrowRight, Close, Menu, Search, User } from './Icons';
 import { Logo } from './Logo';
 
-type NavKey = 'shop' | 'packs' | 'plugins' | 'about' | 'account';
+/** Main menu: applications + About. No project counts anywhere in the menu. */
+const NAV = [
+  { key: 'after-effects', label: 'After Effects', to: '/browse?cat=after-effects' },
+  { key: 'premiere-pro', label: 'Premiere Pro', to: '/browse?cat=premiere-pro' },
+  { key: 'plugins', label: 'Plugins', to: '/browse?cat=plugins' },
+  { key: 'presets', label: 'LUTs', to: '/browse?cat=presets' },
+  { key: 'sound-fx', label: 'Sound FX', to: '/browse?cat=sound-fx' },
+  { key: 'about', label: 'About', to: '/about' },
+] as const;
 
-function useActiveNav(): NavKey | null {
+function useActiveNav(): string | null {
   const { pathname } = useLocation();
   const [params] = useSearchParams();
   if (pathname.startsWith('/about')) return 'about';
   if (pathname.startsWith('/account')) return 'account';
-  if (pathname.startsWith('/browse')) {
-    if (params.get('type') === 'pack') return 'packs';
-    if (params.get('cat') === 'plugins') return 'plugins';
-  }
-  return 'shop';
-}
-
-const TYPES = [
-  { label: 'Featured', to: '/browse?type=featured' },
-  { label: 'Big packs', to: '/browse?type=pack' },
-  { label: 'Single projects', to: '/browse?type=basic' },
-  { label: 'New arrivals', to: '/browse?sort=newest' },
-];
-
-function ShopMenu({ onNavigate }: { onNavigate: () => void }) {
-  return (
-    <div className="menu glass-panel" role="menu">
-      <div className="menu__col">
-        <div className="menu__heading">By application</div>
-        {CATEGORIES.map((c) => (
-          <Link key={c.id} to={`/browse?cat=${c.id}`} className="menu__item" role="menuitem" onClick={onNavigate}>
-            <span>{c.label}</span>
-            <small>{countByCategory(c.id)}</small>
-            <span className="menu__arrow">
-              <ArrowRight width={16} height={16} />
-            </span>
-          </Link>
-        ))}
-      </div>
-      <div className="menu__col">
-        <div className="menu__heading">By type</div>
-        {TYPES.map((t) => (
-          <Link key={t.to} to={t.to} className="menu__item" role="menuitem" onClick={onNavigate}>
-            <span>{t.label}</span>
-            <span className="menu__arrow">
-              <ArrowRight width={16} height={16} />
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
-  );
+  if (pathname.startsWith('/browse')) return params.get('cat');
+  return null;
 }
 
 export function Header() {
   const active = useActiveNav();
   const navigate = useNavigate();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [q, setQ] = useState('');
-  const closeTimer = useRef<number>(undefined);
 
-  useEffect(() => {
-    setMenuOpen(false);
-    setMobileOpen(false);
-  }, [location]);
+  useEffect(() => setMobileOpen(false), [location]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -78,21 +39,10 @@ export function Header() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // Small delay so the pointer can travel from the trigger into the panel.
-  const openMenu = () => {
-    window.clearTimeout(closeTimer.current);
-    setMenuOpen(true);
-  };
-  const closeMenu = () => {
-    closeTimer.current = window.setTimeout(() => setMenuOpen(false), 140);
-  };
-
   const submit = (e: FormEvent) => {
     e.preventDefault();
     navigate(`/browse?q=${encodeURIComponent(q.trim())}`);
   };
-
-  const pill = (key: NavKey) => `nav__link ${active === key ? 'is-active' : ''}`;
 
   return (
     <header className={`header ${scrolled ? 'is-scrolled' : ''}`}>
@@ -102,26 +52,16 @@ export function Header() {
         </Link>
 
         <nav className="nav glass-pill" aria-label="Main">
-          <div className="nav__dropdown" onMouseEnter={openMenu} onMouseLeave={closeMenu}>
-            <button
-              className={pill('shop')}
-              aria-expanded={menuOpen}
-              aria-haspopup="menu"
-              onClick={() => setMenuOpen((v) => !v)}
+          {NAV.map((n) => (
+            <Link
+              key={n.key}
+              to={n.to}
+              className={`nav__link ${active === n.key ? 'is-active' : ''}`}
+              aria-current={active === n.key ? 'page' : undefined}
             >
-              Shop <Chevron width={14} height={14} className={`chev ${menuOpen ? 'is-open' : ''}`} />
-            </button>
-            {menuOpen && <ShopMenu onNavigate={() => setMenuOpen(false)} />}
-          </div>
-          <NavLink to="/browse?type=pack" className={pill('packs')}>
-            Packs
-          </NavLink>
-          <NavLink to="/browse?cat=plugins" className={pill('plugins')}>
-            Plugins
-          </NavLink>
-          <NavLink to="/about" className={pill('about')}>
-            About
-          </NavLink>
+              {n.label}
+            </Link>
+          ))}
         </nav>
 
         <div className="header__actions">
@@ -149,17 +89,14 @@ export function Header() {
             <Search width={16} height={16} />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search templates" aria-label="Search" />
           </form>
-          <div className="menu__heading">Shop</div>
-          {[...CATEGORIES.map((c) => ({ label: c.label, to: `/browse?cat=${c.id}` })), ...TYPES, { label: 'About', to: '/about' }, { label: 'My Account', to: '/account' }].map(
-            (l) => (
-              <Link key={l.to} to={l.to} className="menu__item">
-                <span>{l.label}</span>
-                <span className="menu__arrow">
-                  <ArrowRight width={16} height={16} />
-                </span>
-              </Link>
-            ),
-          )}
+          {[...NAV, { key: 'account', label: 'My Account', to: '/account' }].map((l) => (
+            <Link key={l.key} to={l.to} className={`menu__item ${active === l.key ? 'is-active' : ''}`}>
+              <span>{l.label}</span>
+              <span className="menu__arrow">
+                <ArrowRight width={16} height={16} />
+              </span>
+            </Link>
+          ))}
         </div>
       )}
     </header>

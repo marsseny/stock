@@ -95,6 +95,8 @@ export interface Feature {
   visual?: 'timeline' | 'resize' | 'sliders' | 'textbox' | 'app' | 'stat';
   /** Big value for `app` (version) and `stat` (count) tiles. */
   value?: string;
+  /** Small label in the top-right corner of a feature card (e.g. "Timing"). */
+  tag?: string;
 }
 
 export interface SceneGroup {
