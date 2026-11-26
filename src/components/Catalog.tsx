@@ -28,12 +28,14 @@ interface Props {
   showTags?: boolean;
   /** Element id to scroll to when filters change. */
   anchorId?: string;
+  /** Projects shown at first and added by every "Load more" (default 18 = 6 rows of 3). */
+  pageSize?: number;
 }
 
 /** Filterable product grid. All filter state lives in the URL so views are shareable. */
-export function Catalog({ hideIds, showTags = true, anchorId = 'catalog' }: Props) {
+export function Catalog({ hideIds, showTags = true, anchorId = 'catalog', pageSize = PAGE }: Props) {
   const [params, setParams] = useSearchParams();
-  const [limit, setLimit] = useState(PAGE);
+  const [limit, setLimit] = useState(pageSize);
 
   const cat = params.get('cat');
   const category = isCategoryId(cat) ? cat : null;
@@ -54,7 +56,7 @@ export function Catalog({ hideIds, showTags = true, anchorId = 'catalog' }: Prop
     return list.filter((p) => !hidden.has(p.id));
   }, [category, tier, tagsKey, q, sort, hasFilters, hideKey]);
 
-  useEffect(() => setLimit(PAGE), [params]);
+  useEffect(() => setLimit(pageSize), [params, pageSize]);
 
   const update = (mutate: (p: URLSearchParams) => void) => {
     const next = new URLSearchParams(params);
@@ -161,7 +163,7 @@ export function Catalog({ hideIds, showTags = true, anchorId = 'catalog' }: Prop
 
       {results.length > limit && (
         <div className="center">
-          <button className="btn btn--glass btn--lg" onClick={() => setLimit((l) => l + PAGE)}>
+          <button className="btn btn--glass btn--lg" onClick={() => setLimit((l) => l + pageSize)}>
             Load more
           </button>
         </div>

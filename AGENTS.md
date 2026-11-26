@@ -45,3 +45,6 @@ SPA: Vite + React 19 + React Router 7 (`BrowserRouter`), TypeScript, a single ha
 ## Hosting (test stand)
 - Naive app `framehaus` (fullstack, runs on Vercel): `vercel.json` (SPA rewrite), `api/*.ts` = serverless entry points (default export + GET/POST/OPTIONS) over `src/server/`. `cf/worker.ts` → `dist/_worker.js` + `wrangler.toml` is the Cloudflare Pages entry; `api/*.ts` run on the Edge runtime (`config.runtime = edge`).
 - Browser `VITE_*` values live in `public.env` (read by `vite.config.ts`); server secrets are app secrets (SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, WHOP_API_KEY, WHOP_WEBHOOK_SECRET, R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_PRIVATE_BUCKET_NAME).
+
+## Current work
+See `PLAN.md` for the v22 design-change milestones (done / remaining). `src/components/TopCarousel.tsx` is the new home top-projects carousel; its `.topc*` styles are not written yet.
