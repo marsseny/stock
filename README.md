@@ -1,6 +1,6 @@
 # Nuova Motion — Premium Video Templates
 
-Marketplace for motion-design templates (current design: v21 — dark glass UI, see `CHANGES-v21-RU.md`): After Effects / Premiere Pro / DaVinci Resolve projects, plugins, presets, sound FX and big packs.
+Marketplace for motion-design templates (current design: v22 — dark glass UI with strict description blocks, see `CHANGES-v22-RU.md`): After Effects / Premiere Pro / DaVinci Resolve projects, plugins, presets, sound FX and big packs.
 
 **Stack:** React 19, React Router 7, Vite, TypeScript, plain CSS · Whop embedded checkout · Supabase (purchases, license keys, e-mail OTP sign-in) · private Cloudflare R2 (ZIP delivery). Hosted on Cloudflare Pages: static SPA + `/api/*` via `dist/_worker.js` (built from `cf/worker.ts`).
 

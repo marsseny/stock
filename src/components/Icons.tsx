@@ -69,11 +69,10 @@ export const ChevronRight = (p: P) => (
 
 /* ---------- Feature icons (project description) ---------- */
 
-/** Minimal app glyph: rounded square with the two-letter app abbreviation. */
+/** Minimal app glyph: just the two-letter app abbreviation, no frame around it (v22). */
 const AppGlyph = ({ letters, ...p }: P & { letters: string }) => (
   <svg {...base} {...p}>
-    <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
-    <text x="12" y="15.6" textAnchor="middle" fontSize="9.5" fontWeight="600" fill="currentColor" stroke="none" fontFamily="Space Grotesk, system-ui, sans-serif" letterSpacing="-0.3">{letters}</text>
+    <text x="12" y="16.6" textAnchor="middle" fontSize="14" fontWeight="400" fill="currentColor" stroke="none" fontFamily="Space Grotesk, system-ui, sans-serif" letterSpacing="-0.6">{letters}</text>
   </svg>
 );
 export const AfterEffects = (p: P) => <AppGlyph letters="Ae" {...p} />;

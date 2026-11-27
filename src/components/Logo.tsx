@@ -1,44 +1,43 @@
 import { useId, type SVGProps } from 'react';
 
 /**
- * Nuova Motion mark: a dark glass tile with a single-stroke "N" drawn as a motion path
- * (peach → lavender gradient) ending in a dot. Same drawing as public/favicon.svg.
+ * nuovamotion mark (v23): no tile — a heavy, rounded lower-case "n" (one thick stroke) in a soft white →
+ * warm-grey gradient, sitting in its own blurred glow so the letter looks bold and out of focus at the
+ * edges, with a crisp core on top. Same drawing as public/favicon.svg (the favicon adds a dark disc
+ * behind it so it reads on light browser tabs).
  */
 export function LogoMark(props: SVGProps<SVGSVGElement>) {
   const id = useId().replace(/:/g, '');
+  const n = 'M10 24V15.6C10 11.9 12.6 9.4 16 9.4S22 11.9 22 15.6V24';
   return (
-    <svg viewBox="0 0 32 32" width={30} height={30} aria-hidden focusable="false" {...props}>
+    <svg viewBox="0 0 32 32" width={30} height={30} aria-hidden focusable="false" overflow="visible" {...props}>
       <defs>
-        <linearGradient id={`${id}t`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#3a2d36" />
-          <stop offset="1" stopColor="#140e12" />
+        <linearGradient id={`${id}g`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" />
+          <stop offset=".6" stopColor="#efe6df" />
+          <stop offset="1" stopColor="#b9aea6" />
         </linearGradient>
-        <linearGradient id={`${id}s`} x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor="#fbe3d0" />
-          <stop offset="1" stopColor="#b9b2d8" />
-        </linearGradient>
+        <filter id={`${id}halo`} x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="2.6" />
+        </filter>
+        <filter id={`${id}soft`} x="-30%" y="-30%" width="160%" height="160%">
+          <feGaussianBlur stdDeviation=".7" />
+        </filter>
       </defs>
-      <rect x=".5" y=".5" width="31" height="31" rx="10" fill={`url(#${id}t)`} stroke="#fff" strokeOpacity=".22" />
-      <path
-        d="M10 22V10.5l12 11V10"
-        fill="none"
-        stroke={`url(#${id}s)`}
-        strokeWidth="2.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <circle cx="22" cy="22" r="1.7" fill="#fbe3d0" />
+      <path d={n} fill="none" stroke="#f3e4d8" strokeOpacity=".55" strokeWidth="9" strokeLinecap="round" filter={`url(#${id}halo)`} />
+      <path d={n} fill="none" stroke={`url(#${id}g)`} strokeWidth="7.4" strokeLinecap="round" filter={`url(#${id}soft)`} />
     </svg>
   );
 }
 
-/** Logo used in the header and footer: mark + "Nuova Motion" wordmark ("Nuova" bold, "Motion" regular). */
+/** Logo used in the header and footer: mark + "nuovamotion" wordmark in lower case ("nuova" bold, "motion" light). */
 export function Logo() {
   return (
     <>
       <LogoMark className="logo__mark" />
       <span className="logo__word">
-        <b>Nuova</b> <span>Motion</span>
+        <b>nuova</b>
+        <span>motion</span>
       </span>
     </>
   );

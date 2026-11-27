@@ -2,18 +2,18 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Catalog } from '../components/Catalog';
 import { Search } from '../components/Icons';
-import { TopCarousel } from '../components/TopCarousel';
+import { TopShowcase } from '../components/TopShowcase';
 import { CATEGORIES } from '../data/categories';
-import { ALL_TAGS, FEATURED } from '../data/products';
+import { ALL_TAGS, FEATURED, PRODUCTS } from '../data/products';
 
-/** Top projects in the carousel on the right of the first screen: one large preview + 2 rows of 5 small banners. */
-const HERO_TOP = 10;
+/** Top projects in the right half of the first screen: one large preview + 2 rows of 3 small banners. */
+const HERO_TOP = 6;
 const HERO_TAGS = 8;
-/** "All projects" on the home page shows 1.5× the regular page (27 = 9 rows of 3). */
-const HOME_PAGE_SIZE = 27;
+/** "All projects" shows 1.5× the regular page at first: 27 cards = 9 full rows of 3. */
+const HOME_PAGE = 27;
 
-const TOP = FEATURED.slice(0, HERO_TOP);
-const TOP_IDS = TOP.map((p) => p.id);
+// Featured items first; topped up with other projects if there are fewer than HERO_TOP of them.
+const TOP = [...FEATURED, ...PRODUCTS.filter((p) => p.tier !== 'featured')].slice(0, HERO_TOP);
 
 export function Home() {
   const navigate = useNavigate();
@@ -35,12 +35,15 @@ export function Home() {
           <div className="hero-split__content">
             <p className="eyebrow">After Effects · Premiere Pro · Plugins · Packs</p>
             <h1 className="hero-title">
-              <span className="hero-title__line">Premium</span>
-              <span className="hero-title__line">
-                Video <em className="hero-title__pill">Templates</em>
-              </span>
+              Premium
+              <br />
+              <span>Video Templates</span>
             </h1>
-            <p className="hero__lead">Hand-picked by independent motion designers. Buy once, use forever.</p>
+            <p className="hero__lead">
+              Hand-picked by independent motion designers.
+              <br />
+              Buy once, use forever.
+            </p>
 
             <form className="hero__search" onSubmit={submit} role="search">
               <Search width={20} height={20} />
@@ -67,14 +70,14 @@ export function Home() {
           </div>
         </div>
 
-        <TopCarousel products={TOP} />
+        <TopShowcase items={TOP} />
       </section>
 
       <section className="section">
         <div className="section__head">
           <h2>All projects</h2>
         </div>
-        <Catalog hideIds={TOP_IDS} showTags={false} pageSize={HOME_PAGE_SIZE} />
+        <Catalog showTags={false} pageSize={HOME_PAGE} />
       </section>
     </>
   );

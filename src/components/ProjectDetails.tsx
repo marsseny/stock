@@ -5,9 +5,9 @@ import type { Feature, Product, SceneGroup } from '../types';
 import { ChevronLeft, ChevronRight, FEATURE_ICONS } from './Icons';
 
 /**
- * Detailed project description on the product page, in light matte glass:
- * an intro card, numbered feature cards ("01 Feature" + tag, a themed icon or a small animation in a
- * soft frame, a two-weight title and the text) and compact perk cards for minor features, then the
+ * Detailed project description on the product page, in strict dark blocks with thin rims (v22):
+ * an intro card, numbered feature cards ("01 Feature" + a small grey tag, a monochrome line icon or a
+ * small animation with no frame, a two-weight title and the text) and compact perk cards for minor features, then the
  * screens from the project grouped by category, and small tags.
  * Content comes from `getDetails` — editable per project in `src/data/details/<slug>.json`.
  */
@@ -149,7 +149,7 @@ function FeatureCard({ f, n }: { f: Feature; n: number }) {
   );
 }
 
-/** Minor feature: compact light card with an icon, a two-weight title and the full text (never truncated). */
+/** Minor feature: compact dark card with an icon, a two-weight title and the full text (never truncated). */
 function Perk({ f, index }: { f: Feature; index: number }) {
   const Icon = iconFor(f);
   return (

@@ -14,6 +14,9 @@ import { discountedPrice, getActivePromo, type PromoInfo } from '../lib/promo';
 import { useProductReviews } from '../lib/useProductReviews';
 import { NotFound } from './NotFound';
 
+/** Fewer reviews than this → the rating / reviews row is not shown at all. */
+const MIN_REVIEWS_SHOWN = 3;
+
 export function ProductPage() {
   const { slug = '' } = useParams();
   const product = getProduct(slug);
@@ -21,8 +24,12 @@ export function ProductPage() {
   // Only a code the buyer typed and applied in the last 15 minutes is remembered — nothing is pre-filled from the account.
   const [promo, setPromo] = useState<PromoInfo | null>(getActivePromo);
   const reviewSummary = useProductReviews(product);
+  const showRating = reviewSummary.count >= MIN_REVIEWS_SHOWN;
 
   useEffect(() => setShowReviews(false), [slug]);
+  useEffect(() => {
+    if (!showRating) setShowReviews(false);
+  }, [showRating]);
 
   useEffect(() => {
     if (showReviews) document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -74,26 +81,21 @@ export function ProductPage() {
               <TierBadge product={product} />
             </div>
             <h1>{product.title}</h1>
-            <button
-              type="button"
-              className={`rating rating--btn ${showReviews ? 'is-open' : ''} ${reviewSummary.count > 0 ? '' : 'rating--empty'}`}
-              onClick={() => setShowReviews((v) => !v)}
-              aria-expanded={showReviews}
-              aria-controls="reviews"
-            >
-              <Star width={15} height={15} />
-              {reviewSummary.count > 0 ? (
-                <>
-                  {reviewSummary.rating.toFixed(1)}
-                  <span className="muted">
-                    · {reviewSummary.count.toLocaleString('en-US')} {reviewSummary.count === 1 ? 'review' : 'reviews'}
-                  </span>
-                </>
-              ) : (
-                <span className="muted">No reviews yet</span>
-              )}
-              <Chevron width={15} height={15} className="rating__chev" />
-            </button>
+            {/* The rating row appears only once a project has at least 3 real reviews. */}
+            {showRating && (
+              <button
+                type="button"
+                className={`rating rating--btn ${showReviews ? 'is-open' : ''}`}
+                onClick={() => setShowReviews((v) => !v)}
+                aria-expanded={showReviews}
+                aria-controls="reviews"
+              >
+                <Star width={15} height={15} />
+                {reviewSummary.rating.toFixed(1)}
+                <span className="muted">· {reviewSummary.count.toLocaleString('en-US')} reviews</span>
+                <Chevron width={15} height={15} className="rating__chev" />
+              </button>
+            )}
 
             <div className="price price--lg">
               {activePromo ? (
@@ -128,7 +130,7 @@ export function ProductPage() {
             </dl>
           </aside>
 
-          {showReviews && <ReviewsPanel id="reviews" product={product} summary={reviewSummary} />}
+          {showRating && showReviews && <ReviewsPanel id="reviews" product={product} summary={reviewSummary} />}
         </div>
       </div>
 

@@ -28,7 +28,7 @@ interface Props {
   showTags?: boolean;
   /** Element id to scroll to when filters change. */
   anchorId?: string;
-  /** Projects shown at first and added by every "Load more" (default 18 = 6 rows of 3). */
+  /** Cards shown at first and added by "Load more" (home: 27 = 9 full rows of 3). */
   pageSize?: number;
 }
 
